@@ -99,11 +99,24 @@ serve(async (req) => {
   try {
     const startTime = Date.now();
 
-    // Optional: Verify cron secret
+    // Verify cron secret - check if it's present in the header
     const authHeader = req.headers.get("authorization");
     const cronSecret = Deno.env.get("CRON_SECRET");
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Allow requests with valid CRON_SECRET or valid Supabase JWT
+    let isAuthorized = false;
+
+    if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+      isAuthorized = true;
+      console.log("Authorized via CRON_SECRET");
+    } else if (authHeader && authHeader.startsWith("Bearer eyJ")) {
+      // Looks like a JWT token, allow it (Supabase validates JWTs automatically)
+      isAuthorized = true;
+      console.log("Authorized via JWT");
+    }
+
+    if (!isAuthorized) {
+      console.log("Unauthorized request - invalid auth header:", authHeader?.substring(0, 20));
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
