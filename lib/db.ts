@@ -1,5 +1,5 @@
 // Supabase database implementation for alerts
-import type { Alert, CreateAlertRequest } from "./types";
+import type { Alert, CreateAlertRequest, CronLog } from "./types";
 import { supabase } from "./supabase";
 import { generateManagementToken } from "./token";
 
@@ -32,7 +32,7 @@ export const db = {
       logId: string,
       alertsChecked: number,
       notificationsSent: number,
-      metadata?: any
+      metadata?: Record<string, unknown>
     ): Promise<void> => {
       const { data: logData, error: fetchError } = await supabase
         .from("cron_logs")
@@ -103,7 +103,7 @@ export const db = {
     /**
      * Get recent cron logs
      */
-    getRecent: async (limit = 50): Promise<any[]> => {
+    getRecent: async (limit = 50): Promise<CronLog[]> => {
       const { data, error } = await supabase
         .from("cron_logs")
         .select("*")
@@ -260,7 +260,7 @@ export const db = {
       id: string,
       updates: Partial<Alert>
     ): Promise<Alert | undefined> => {
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
 
       if (updates.email !== undefined) updateData.email = updates.email;
       if (updates.dates !== undefined) updateData.dates = updates.dates;

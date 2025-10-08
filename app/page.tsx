@@ -8,7 +8,7 @@ import { TimeSlotModal } from "@/components/time-slot-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { format, parseISO } from "date-fns";
+// import { format, parseISO } from "date-fns";
 import { ExternalLink, RotateCw } from "lucide-react";
 import type { CalendarDate, CalendarResponse, EventSession } from "@/lib/types";
 import { generateBookingUrl } from "@/lib/glenstone-api";
@@ -18,7 +18,7 @@ export default function Home() {
   const [sessions, setSessions] = useState<EventSession[]>([]);
   const [calendarData, setCalendarData] = useState<CalendarDate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(2);
+  const quantity = 2;
 
   // Modal states
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from "date-fns";
 import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight, Bell } from "lucide-react";
 import type { CalendarDate, EventSession, WeatherResponse } from "@/lib/types";
@@ -40,7 +40,7 @@ export function AvailabilityCalendar({
 
   // Add padding days for calendar grid (start on Sunday)
   const startDay = getDay(monthStart); // 0 = Sunday
-  const paddingDays = Array.from({ length: startDay }, (_, i) => null);
+  const paddingDays = Array.from({ length: startDay }, () => null);
 
   // Fetch weather data when month changes
   useEffect(() => {
@@ -63,7 +63,7 @@ export function AvailabilityCalendar({
     };
 
     fetchWeather();
-  }, [currentMonth]);
+  }, [currentMonth, monthStart, monthEnd]);
 
   const handleDayClick = async (dateStr: string, dayData: CalendarDate) => {
     if (dayData.status === "sold_out") return;

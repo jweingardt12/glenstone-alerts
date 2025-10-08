@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchDailyForecast } from "@/lib/weatherkit";
-import type { WeatherResponse, DailyWeather } from "@/lib/types";
+import type { WeatherResponse } from "@/lib/types";
 import { format } from "date-fns";
 
 // Cache weather data for 6 hours

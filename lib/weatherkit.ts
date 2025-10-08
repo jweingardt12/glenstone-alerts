@@ -44,7 +44,7 @@ export function generateWeatherKitToken(): string {
   if (privateKey && !privateKey.includes("BEGIN")) {
     try {
       privateKey = Buffer.from(privateKey, "base64").toString("utf8");
-    } catch (e) {
+    } catch {
       // ignore; will fail later if invalid
     }
   }
@@ -88,13 +88,59 @@ export function generateWeatherKitToken(): string {
   return token;
 }
 
+export interface DailyWeatherForecast {
+  forecastDaily?: {
+    days: Array<{
+      forecastStart: string;
+      forecastEnd: string;
+      conditionCode: string;
+      maxUvIndex: number;
+      moonPhase: string;
+      moonrise: string;
+      moonset: string;
+      precipitationAmount: number;
+      precipitationChance: number;
+      precipitationType: string;
+      snowfallAmount: number;
+      solarMidnight: string;
+      solarNoon: string;
+      sunrise: string;
+      sunset: string;
+      temperatureMax: number;
+      temperatureMin: number;
+      daytimeForecast?: {
+        cloudCover: number;
+        conditionCode: string;
+        humidity: number;
+        precipitationAmount: number;
+        precipitationChance: number;
+        precipitationType: string;
+        snowfallAmount: number;
+        windDirection: number;
+        windSpeed: number;
+      };
+      overnightForecast?: {
+        cloudCover: number;
+        conditionCode: string;
+        humidity: number;
+        precipitationAmount: number;
+        precipitationChance: number;
+        precipitationType: string;
+        snowfallAmount: number;
+        windDirection: number;
+        windSpeed: number;
+      };
+    }>;
+  };
+}
+
 /**
  * Fetch daily weather forecast from WeatherKit
  */
 export async function fetchDailyForecast(
   startDate: string,
   endDate?: string
-): Promise<any> {
+): Promise<DailyWeatherForecast> {
   const token = generateWeatherKitToken();
 
   // Build URL with parameters

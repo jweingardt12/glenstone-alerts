@@ -47,7 +47,7 @@ export interface SessionsResponse {
   };
   price_schedule?: {
     _count: number;
-    _data: any[];
+    _data: unknown[];
     _total: number;
   };
 }

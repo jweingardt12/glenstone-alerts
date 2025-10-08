@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { DayCard } from "./day-card";
 import { Button } from "./ui/button";
 import type { CalendarDate, EventSession, WeatherResponse } from "@/lib/types";
-import { format } from "date-fns";
+// import { format } from "date-fns";
 
 interface AvailabilityListProps {
   calendarData: CalendarDate[];

@@ -10,7 +10,7 @@ interface AlertsManagerProps {
 
 export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  // const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
@@ -104,7 +104,7 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
     return (
       <div className="text-center py-12">
         <p className="text-stone-400 text-lg font-light">
-          You don't have any alerts set up yet.
+          You don&apos;t have any alerts set up yet.
         </p>
       </div>
     );
