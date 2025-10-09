@@ -59,10 +59,12 @@ export async function POST(request: NextRequest) {
 
     // Check for duplicate alert (same email + same dates)
     const sortedNewDates = [...body.dates].sort().join(',');
+    const sortedNewTimes = body.preferredTimes ? [...body.preferredTimes].sort().join(',') : '';
     const duplicateAlert = existingAlerts.find(alert => {
       const sortedAlertDates = [...alert.dates].sort().join(',');
+      const sortedAlertTimes = alert.preferredTimes ? [...alert.preferredTimes].sort().join(',') : '';
       return sortedAlertDates === sortedNewDates &&
-             alert.timeOfDay === body.timeOfDay &&
+             sortedAlertTimes === sortedNewTimes &&
              alert.quantity === body.quantity;
     });
 
