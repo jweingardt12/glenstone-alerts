@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { format, parseISO } from "date-fns";
-import { ExternalLink, Bell, ArrowLeft } from "lucide-react";
-import type { EventSession } from "@/lib/types";
-import { AlertFormInline } from "@/components/alert-form-inline";
+import { format, parseISO, getHours } from "date-fns";
+import { ExternalLink, Bell } from "lucide-react";
+import type { EventSession, HourlyWeatherResponse } from "@/lib/types";
+import { AlertForm } from "@/components/alert-form";
+import { WeatherIcon } from "@/components/weather-icon";
 
 interface TimeSlotModalProps {
   isOpen: boolean;
@@ -23,15 +24,28 @@ export function TimeSlotModal({
   sessions,
   onBook,
 }: TimeSlotModalProps) {
-  const [view, setView] = useState<"slots" | "alert">("slots");
-  const [selectedTimeOfDay, setSelectedTimeOfDay] = useState<"morning" | "midday" | "afternoon" | "any">("any");
+  const [showAlertForm, setShowAlertForm] = useState(false);
+  const [weatherData, setWeatherData] = useState<HourlyWeatherResponse | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
 
-  // Reset view when modal opens
+  // Fetch weather data when modal opens
   useEffect(() => {
-    if (isOpen) {
-      setView("slots");
+    if (isOpen && date) {
+      setWeatherLoading(true);
+      fetch(`/api/weather/hourly?date=${date}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setWeatherData(data);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch weather:", err);
+          setWeatherData(null);
+        })
+        .finally(() => {
+          setWeatherLoading(false);
+        });
     }
-  }, [isOpen]);
+  }, [isOpen, date]);
 
   if (!date) return null;
 
@@ -39,39 +53,16 @@ export function TimeSlotModal({
   const unavailableSessions = sessions.filter((s) => s.sold_out);
   const dateObj = parseISO(date);
 
-  const getTimeOfDay = (sessionTime: string): "morning" | "midday" | "afternoon" => {
-    const time = parseISO(sessionTime);
-    const hour = time.getHours();
-
-    if (hour < 12) return "morning";
-    if (hour < 15) return "midday";
-    return "afternoon";
-  };
-
-  const handleOpenAlert = (session?: EventSession) => {
-    if (session) {
-      const timeOfDay = getTimeOfDay(session.start_datetime);
-      setSelectedTimeOfDay(timeOfDay);
-    } else {
-      setSelectedTimeOfDay("any");
-    }
-    setView("alert");
-  };
-
-  const handleCloseAlert = () => {
-    setView("slots");
-  };
-
-  const handleSheetClose = (open: boolean) => {
-    if (!open) {
-      setView("slots");
-      onClose();
-    }
+  const handleOpenAlert = () => {
+    onClose(); // Close the time slot modal
+    setShowAlertForm(true); // Open the alert form
   };
 
   const renderSession = (session: EventSession) => {
     const available = session.capacity - session.used_capacity;
     const startTime = parseISO(session.start_datetime);
+    const hour = getHours(startTime).toString();
+    const weather = weatherData?.[hour];
 
     return (
       <div
@@ -82,9 +73,22 @@ export function TimeSlotModal({
             : "bg-card"
         }`}
       >
-        <span className="text-sm font-light">
-          {format(startTime, "h:mm a")}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-light">
+            {format(startTime, "h:mm a")}
+          </span>
+          {weather && !weatherLoading && (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <WeatherIcon conditionCode={weather.conditionCode} className="h-3.5 w-3.5" />
+              <span className="text-xs">{weather.temperature}°</span>
+              {weather.precipitationChance > 0 && (
+                <span className="text-xs">
+                  {Math.round(weather.precipitationChance * 100)}%
+                </span>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           <span
             className={`text-sm ${
@@ -98,7 +102,7 @@ export function TimeSlotModal({
               variant="ghost"
               size="sm"
               className="h-7 px-2"
-              onClick={() => handleOpenAlert(session)}
+              onClick={handleOpenAlert}
             >
               <Bell className="h-3.5 w-3.5" />
             </Button>
@@ -109,12 +113,11 @@ export function TimeSlotModal({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={handleSheetClose}>
-      <SheetContent side="right" className="p-0 gap-0 w-full sm:max-w-md flex flex-col">
-        {view === "slots" ? (
-          <>
-            {/* Header */}
-            <SheetHeader className="p-6 pb-4 border-b">
+    <>
+      <Sheet open={isOpen} onOpenChange={onClose}>
+        <SheetContent side="right" className="p-0 gap-0 w-full sm:max-w-md flex flex-col">
+          {/* Header */}
+          <SheetHeader className="p-6 pb-4 border-b">
               <SheetTitle className="text-2xl font-light">
                 {format(dateObj, "MMMM d, yyyy")}
               </SheetTitle>
@@ -156,53 +159,27 @@ export function TimeSlotModal({
           )}
             </div>
 
-            {/* Bottom action */}
-            {sessions.some((s) => !s.sold_out) && (
-              <div className="p-6 pt-4 border-t">
-                <Button
-                  onClick={onBook}
-                  className="w-full"
-                >
-                  Book on Glenstone.org
-                  <ExternalLink className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            {/* Alert Form View */}
-            <SheetHeader className="p-6 pb-4 border-b">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={handleCloseAlert}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                  <SheetTitle className="text-2xl font-light">
-                    Create Alert
-                  </SheetTitle>
-                  <SheetDescription className="text-sm font-light">
-                    Get notified when tickets become available
-                  </SheetDescription>
-                </div>
-              </div>
-            </SheetHeader>
-
-            <div className="overflow-y-auto flex-1">
-              <AlertFormInline
-                prefilledDate={date}
-                prefilledTimeOfDay={selectedTimeOfDay}
-                onSuccess={handleCloseAlert}
-              />
+          {/* Bottom action */}
+          {sessions.some((s) => !s.sold_out) && (
+            <div className="p-6 pt-4 border-t">
+              <Button
+                onClick={onBook}
+                className="w-full"
+              >
+                Book on Glenstone.org
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
             </div>
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Alert Form - Same component used everywhere */}
+      <AlertForm
+        isOpen={showAlertForm}
+        onClose={() => setShowAlertForm(false)}
+        prefilledDate={date}
+      />
+    </>
   );
 }

@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
+import { ExternalLink } from "lucide-react";
 import { AlertsManager } from "@/components/alerts-manager";
+import { UnsubscribeButton } from "@/components/unsubscribe-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { isValidTokenFormat } from "@/lib/token";
 import { db } from "@/lib/db";
 
@@ -10,6 +14,7 @@ interface PageProps {
 async function getAlerts(token: string) {
   try {
     const alerts = await db.alerts.getByToken(token);
+    console.log("Fetched alerts for manage page:", alerts.map(a => ({ id: a.id, active: a.active })));
     return alerts;
   } catch (error) {
     console.error("Error fetching alerts:", error);
@@ -35,70 +40,144 @@ export default async function ManageAlertsPage({ params }: PageProps) {
   const email = alerts[0].email;
 
   return (
-    <div className="min-h-screen bg-stone-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-light tracking-wide text-stone-900 mb-2">
-            Manage Your Alerts
-          </h1>
-          <p className="text-stone-600 font-light">
-            Viewing alerts for <strong className="font-normal">{email}</strong>
-          </p>
-        </div>
+    <div className="min-h-screen bg-background">
+      {/* Hero Header */}
+      <header className="relative w-full h-[200px] sm:h-[250px] md:h-[300px] overflow-hidden">
+        {/* Background Image */}
+        <Image
+          src="/glenstone.jpeg"
+          alt="Glenstone Museum"
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
 
-        {/* Alerts List */}
-        <div className="bg-white border border-stone-200 rounded-sm p-8 mb-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-light text-stone-900">
-              Your Alerts ({alerts.length})
-            </h2>
+        {/* Gradient Overlay for text contrast */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60 dark:from-black/70 dark:via-black/50 dark:to-black/70 transition-colors duration-300" />
+
+        {/* Content */}
+        <div className="relative h-full container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex items-start justify-between h-full">
+            <div className="flex items-end h-full pb-8 sm:pb-12">
+              <div className="space-y-1">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-wide text-white drop-shadow-lg">
+                  Glenstone Alerts
+                </h1>
+                <p className="text-sm sm:text-base md:text-lg text-white/90 font-light drop-shadow-md">
+                  Free admission • Advance reservation required
+                </p>
+              </div>
+            </div>
+            <ThemeToggle />
           </div>
-          <AlertsManager initialAlerts={alerts} />
         </div>
+      </header>
 
-        {/* Info Section */}
-        <div className="bg-stone-100 border border-stone-200 rounded-sm p-6">
-          <h3 className="text-lg font-light text-stone-900 mb-4">
-            How It Works
-          </h3>
-          <ul className="space-y-2 text-sm text-stone-600 font-light leading-relaxed">
-            <li>
-              • <strong className="font-normal">Active alerts</strong> will notify you when tickets
-              become available
-            </li>
-            <li>
-              • <strong className="font-normal">Deactivate</strong> an alert to pause notifications
-              without deleting it
-            </li>
-            <li>
-              • <strong className="font-normal">Delete</strong> an alert permanently if you no longer
-              need it
-            </li>
-            <li>
-              • We check availability regularly throughout the day
-            </li>
-          </ul>
-        </div>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="max-w-5xl mx-auto">
+          <div className="space-y-4 sm:space-y-6">
+            {/* Page Header */}
+            <div>
+              <h2 className="text-xl sm:text-2xl font-light">
+                Manage Your Alerts
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Viewing alerts for <strong className="font-normal">{email}</strong>
+              </p>
+            </div>
 
-        {/* Footer */}
-        <div className="mt-12 text-center text-sm text-stone-500 font-light">
-          <p>
-            Unofficial tool • Not affiliated with Glenstone Museum
-          </p>
-          <p className="mt-2">
-            <a
-              href="https://glenstone.org"
-              className="text-stone-900 hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Visit Glenstone.org
-            </a>{" "}
-            for official information
-          </p>
+            {/* Alerts List */}
+            <div className="bg-card border rounded-sm p-6 sm:p-8">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+                <h3 className="text-2xl font-light">
+                  Your Alerts ({alerts.length})
+                </h3>
+                <UnsubscribeButton token={token} />
+              </div>
+              <AlertsManager initialAlerts={alerts} />
+            </div>
+
+            {/* Info Section */}
+            <div className="bg-muted/50 border rounded-sm p-6">
+              <h3 className="text-lg font-light mb-4">
+                How It Works
+              </h3>
+              <ul className="space-y-2 text-sm text-muted-foreground font-light leading-relaxed">
+                <li>
+                  • <strong className="font-normal">Active alerts</strong> will notify you when tickets
+                  become available
+                </li>
+                <li>
+                  • <strong className="font-normal">Deactivate</strong> an alert to pause notifications
+                  without deleting it
+                </li>
+                <li>
+                  • <strong className="font-normal">Delete</strong> an alert permanently if you no longer
+                  need it
+                </li>
+                <li>
+                  • We check availability regularly throughout the day
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t mt-24">
+        <div className="container mx-auto px-4 sm:px-6 py-8">
+          <div className="max-w-5xl mx-auto space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
+              <a
+                href="https://github.com/jweingardt12/glenstone-alerts"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light"
+              >
+                GitHub
+                <ExternalLink className="h-3 w-3" />
+              </a>
+              <span className="hidden sm:inline text-muted-foreground">•</span>
+              <a
+                href="https://jwe.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light"
+              >
+                jwe.in
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground font-light inline-flex items-center justify-center gap-1 flex-wrap">
+                Weather from{""}
+                <a
+                  href="https://weather-data.apple.com/legal-attribution.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline inline-flex items-center"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="h-3.5 w-3.5"
+                    aria-label="Apple"
+                  >
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                  </svg>
+                  Weather
+                </a>
+              </p>
+              <p className="text-sm text-muted-foreground font-light">
+                Unofficial tool • Not affiliated with Glenstone Museum
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

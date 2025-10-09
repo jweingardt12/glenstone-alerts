@@ -20,6 +20,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Validate that we're not requesting past dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const requestedStart = new Date(startDate);
+    requestedStart.setHours(0, 0, 0, 0);
+
+    // If start date is before today, adjust it to today
+    const adjustedStartDate = requestedStart < today
+      ? format(today, "yyyy-MM-dd")
+      : startDate;
+
     // Check cache
     const cacheKey = `${startDate}-${endDate || ""}`;
     const cached = weatherCache.get(cacheKey);
@@ -29,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch from WeatherKit
     const weatherData = await fetchDailyForecast(
-      `${startDate}T00:00:00Z`,
+      `${adjustedStartDate}T00:00:00Z`,
       endDate ? `${endDate}T23:59:59Z` : undefined
     );
 

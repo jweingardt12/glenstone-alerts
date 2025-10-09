@@ -39,7 +39,7 @@ export function DayCard({ dayData, weather, isSelected, onClick, onCreateAlert }
             {format(date, "EEEE, MMMM d")}
           </div>
           <div className={`text-sm mt-1 ${isSoldOut ? "text-muted-foreground" : "text-muted-foreground"}`}>
-            {isSoldOut ? "Sold out" : `${available} ${available === 1 ? "pass" : "passes"} available`}
+            {isSoldOut ? "Sold out" : `~${available} ${available === 1 ? "pass" : "passes"} available`}
           </div>
           {weather && (
             <div className="text-sm mt-1 text-muted-foreground flex items-center gap-2">

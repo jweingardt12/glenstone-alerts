@@ -131,7 +131,8 @@ export const db = {
         .insert({
           email: request.email,
           dates: request.dates,
-          time_of_day: request.timeOfDay,
+          time_of_day: request.timeOfDay || 'any',
+          preferred_times: request.preferredTimes || null,
           quantity: request.quantity,
           min_capacity: request.minCapacity,
           active: true,
@@ -149,6 +150,7 @@ export const db = {
         email: data.email,
         dates: data.dates,
         timeOfDay: data.time_of_day,
+        preferredTimes: data.preferred_times,
         quantity: data.quantity,
         minCapacity: data.min_capacity,
         active: data.active,
@@ -185,6 +187,7 @@ export const db = {
         email: data.email,
         dates: data.dates,
         timeOfDay: data.time_of_day,
+        preferredTimes: data.preferred_times,
         quantity: data.quantity,
         minCapacity: data.min_capacity,
         active: data.active,
@@ -268,6 +271,8 @@ export const db = {
       if (updates.dates !== undefined) updateData.dates = updates.dates;
       if (updates.timeOfDay !== undefined)
         updateData.time_of_day = updates.timeOfDay;
+      if (updates.preferredTimes !== undefined)
+        updateData.preferred_times = updates.preferredTimes;
       if (updates.quantity !== undefined) updateData.quantity = updates.quantity;
       if (updates.minCapacity !== undefined)
         updateData.min_capacity = updates.minCapacity;
@@ -302,6 +307,7 @@ export const db = {
         email: data.email,
         dates: data.dates,
         timeOfDay: data.time_of_day,
+        preferredTimes: data.preferred_times,
         quantity: data.quantity,
         minCapacity: data.min_capacity,
         active: data.active,
@@ -450,6 +456,27 @@ export const db = {
         lastNotifiedAt: row.last_notified_at,
         managementToken: row.management_token,
       }));
+    },
+
+    /**
+     * Deactivate all alerts by management token (unsubscribe)
+     */
+    deactivateAllByToken: async (token: string): Promise<number> => {
+      console.log("Deactivating alerts for token:", token);
+
+      const { data, error } = await supabase()
+        .from("alerts")
+        .update({ active: false })
+        .eq("management_token", token)
+        .select();
+
+      if (error) {
+        console.error("Error deactivating alerts by token:", error);
+        throw new Error(`Failed to deactivate alerts: ${error.message}`);
+      }
+
+      console.log("Deactivated alerts:", data);
+      return data?.length || 0;
     },
   },
 };

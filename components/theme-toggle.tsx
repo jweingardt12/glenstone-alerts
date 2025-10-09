@@ -1,40 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  // Only render after mount to avoid hydration mismatch
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon" className="h-9 w-9">
-        <Sun className="h-4 w-4" />
-      </Button>
-    );
-  }
-
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-9 w-9"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-    >
-      {theme === "dark" ? (
-        <Sun className="h-4 w-4 transition-all" />
-      ) : (
-        <Moon className="h-4 w-4 transition-all" />
-      )}
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+    <AnimatedThemeToggler className="h-9 w-9 rounded-md inline-flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors [&>svg]:h-4 [&>svg]:w-4" />
   );
 }

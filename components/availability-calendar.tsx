@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from "date-fns";
 import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight, Bell } from "lucide-react";
@@ -24,19 +24,31 @@ export function AvailabilityCalendar({
   const [loading, setLoading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [weatherData, setWeatherData] = useState<WeatherResponse>({});
+  const [loadingWeather, setLoadingWeather] = useState(false);
 
   // Create a map of dates to availability data for quick lookup
-  const availabilityMap = new Map<string, CalendarDate>();
-  calendarData.forEach((day) => {
-    availabilityMap.set(day.date, day);
-  });
+  const availabilityMap = useMemo(() => {
+    const map = new Map<string, CalendarDate>();
+    calendarData.forEach((day) => {
+      map.set(day.date, day);
+    });
+    return map;
+  }, [calendarData]);
 
-  // Get all dates in the current month view
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  const todayStart = startOfMonth(new Date());
-  const isAtMinMonth = monthStart.getTime() <= todayStart.getTime();
+  // Get all dates in the current month view - memoized to prevent infinite loops
+  const { monthStart, monthEnd, daysInMonth, isAtMinMonth } = useMemo(() => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    const days = eachDayOfInterval({ start, end });
+    const todayStart = startOfMonth(new Date());
+    const atMin = start.getTime() <= todayStart.getTime();
+    return {
+      monthStart: start,
+      monthEnd: end,
+      daysInMonth: days,
+      isAtMinMonth: atMin,
+    };
+  }, [currentMonth]);
 
   // Add padding days for calendar grid (start on Sunday)
   const startDay = getDay(monthStart); // 0 = Sunday
@@ -45,7 +57,11 @@ export function AvailabilityCalendar({
   // Fetch weather data when month changes
   useEffect(() => {
     const fetchWeather = async () => {
+      // Prevent duplicate requests
+      if (loadingWeather) return;
+
       try {
+        setLoadingWeather(true);
         const startDate = format(monthStart, "yyyy-MM-dd");
         const endDate = format(monthEnd, "yyyy-MM-dd");
 
@@ -59,11 +75,15 @@ export function AvailabilityCalendar({
         }
       } catch (error) {
         console.error("Error fetching weather:", error);
+      } finally {
+        setLoadingWeather(false);
       }
     };
 
     fetchWeather();
-  }, [currentMonth, monthStart, monthEnd]);
+    // monthStart and monthEnd are derived from currentMonth, so we only need currentMonth
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMonth]);
 
   const handleDayClick = async (dateStr: string, dayData: CalendarDate) => {
     if (dayData.status === "sold_out") return;
@@ -157,17 +177,19 @@ export function AvailabilityCalendar({
             const isAvailable = dayData?.status === "available";
             const isSoldOut = dayData?.status === "sold_out";
             const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
+            const hasNoData = !dayData;
+            const isFutureWithNoData = !isPast && !isClosed && hasNoData;
 
             return (
               <div
                 key={dateStr}
                 className={cn(
-                  "aspect-square border-t border-r relative group overflow-hidden",
+                  "aspect-square border-t border-r relative group overflow-hidden transition-all duration-200",
                   isPast && "bg-muted/30",
                   isClosed && "bg-muted/50",
-                  !isPast && !isClosed && !dayData && "bg-background",
-                  isAvailable && !isClosed && "bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/40 cursor-pointer transition-colors",
-                  isSoldOut && !isClosed && "bg-muted/50"
+                  isFutureWithNoData && "bg-background hover:bg-muted/30 hover:shadow-md hover:scale-[1.02] hover:z-10 cursor-pointer",
+                  isAvailable && !isClosed && "bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/40 hover:shadow-lg hover:scale-[1.02] hover:z-10 cursor-pointer",
+                  isSoldOut && !isClosed && "bg-muted/50 hover:bg-muted hover:shadow-md hover:scale-[1.02] hover:z-10 cursor-pointer"
                 )}
               >
                 <div
@@ -175,6 +197,8 @@ export function AvailabilityCalendar({
                   onClick={() => {
                     if (isAvailable && dayData && !isClosed) {
                       handleDayClick(dateStr, dayData);
+                    } else if ((isSoldOut || isFutureWithNoData) && !isClosed) {
+                      onCreateAlert(dateStr);
                     }
                   }}
                 >
@@ -182,6 +206,13 @@ export function AvailabilityCalendar({
                   <div className="text-sm font-medium text-foreground mb-1">
                     {format(day, "d")}
                   </div>
+
+                {/* Show "Not yet available" for future dates with no data */}
+                {isFutureWithNoData && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Not yet available
+                  </div>
+                )}
 
                 {/* Availability status */}
                 {dayData && !isPast && !isClosed && (
@@ -192,7 +223,7 @@ export function AvailabilityCalendar({
                           Available
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {dayData.availability.capacity - dayData.availability.used_capacity} slots
+                          ~{dayData.availability.capacity - dayData.availability.used_capacity} slots
                         </div>
                         {weather && (
                           <div className="text-xs mt-1 leading-tight h-[18px]">
@@ -231,21 +262,13 @@ export function AvailabilityCalendar({
                     )}
                   </div>
                 )}
-                {/* Hover overlay action for sold out days */}
-                {isSoldOut && (
-                  <div className="absolute inset-x-2 bottom-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 w-full justify-start text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out pointer-events-none group-hover:pointer-events-auto"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onCreateAlert(dateStr);
-                      }}
-                    >
+                {/* Hover overlay action for sold out days and future dates with no data */}
+                {(isSoldOut || isFutureWithNoData) && !isPast && !isClosed && (
+                  <div className="absolute inset-x-2 bottom-2 pointer-events-none">
+                    <div className="h-6 px-2 w-full flex items-center text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <Bell className="h-3 w-3 mr-1" />
-                      Alert
-                    </Button>
+                      Create alert
+                    </div>
                   </div>
                 )}
               </div>
@@ -261,18 +284,6 @@ export function AvailabilityCalendar({
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
         </div>
       )}
-
-      {/* Legend */}
-      <div className="flex gap-6 text-sm text-muted-foreground justify-center">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-green-100 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded" />
-          <span>Available</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-muted/50 border rounded" />
-          <span>Sold Out</span>
-        </div>
-      </div>
     </div>
   );
 }

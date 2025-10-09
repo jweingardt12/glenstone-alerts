@@ -21,6 +21,8 @@ interface AlertModalProps {
   message: string;
   autoDismiss?: boolean;
   autoDismissDelay?: number;
+  actionLabel?: string;
+  actionUrl?: string;
 }
 
 export function AlertModal({
@@ -31,6 +33,8 @@ export function AlertModal({
   message,
   autoDismiss = false,
   autoDismissDelay = 3000,
+  actionLabel,
+  actionUrl,
 }: AlertModalProps) {
   useEffect(() => {
     if (isOpen && autoDismiss) {
@@ -66,13 +70,25 @@ export function AlertModal({
               {message}
             </DialogDescription>
           </DialogHeader>
-          <Button
-            onClick={onClose}
-            variant="outline"
-            className="mt-4"
-          >
-            Close
-          </Button>
+          <div className="flex gap-2 mt-4">
+            {actionUrl && actionLabel && (
+              <Button
+                onClick={() => {
+                  window.location.href = actionUrl;
+                }}
+                className="flex-1"
+              >
+                {actionLabel}
+              </Button>
+            )}
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className={actionUrl ? "flex-1" : ""}
+            >
+              Close
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

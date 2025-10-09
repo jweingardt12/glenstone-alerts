@@ -172,3 +172,67 @@ export async function fetchDailyForecast(
 
   return response.json();
 }
+
+export interface HourlyWeatherForecast {
+  forecastHourly?: {
+    hours: Array<{
+      forecastStart: string;
+      cloudCover: number;
+      conditionCode: string;
+      daylight: boolean;
+      humidity: number;
+      precipitationAmount: number;
+      precipitationIntensity: number;
+      precipitationChance: number;
+      precipitationType: string;
+      pressure: number;
+      pressureTrend: string;
+      snowfallIntensity: number;
+      temperature: number;
+      temperatureApparent: number;
+      temperatureDewPoint: number;
+      uvIndex: number;
+      visibility: number;
+      windDirection: number;
+      windGust: number;
+      windSpeed: number;
+    }>;
+  };
+}
+
+/**
+ * Fetch hourly weather forecast from WeatherKit
+ */
+export async function fetchHourlyForecast(
+  date: string // YYYY-MM-DD format
+): Promise<HourlyWeatherForecast> {
+  const token = generateWeatherKitToken();
+
+  // Build start and end times for the specific day in America/New_York timezone
+  const startTime = `${date}T00:00:00Z`;
+  const endTime = `${date}T23:59:59Z`;
+
+  // Build URL with parameters
+  const params = new URLSearchParams({
+    dataSets: "forecastHourly",
+    timezone: "America/New_York",
+    hourlyStart: startTime,
+    hourlyEnd: endTime,
+  });
+
+  const url = `https://weatherkit.apple.com/api/v1/weather/en/${GLENSTONE_LAT}/${GLENSTONE_LON}?${params}`;
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("WeatherKit API error:", response.status, errorText);
+    throw new Error(`WeatherKit API error: ${response.status}`);
+  }
+
+  return response.json();
+}

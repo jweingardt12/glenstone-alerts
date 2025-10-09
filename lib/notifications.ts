@@ -257,6 +257,9 @@ export async function sendAlertConfirmation(alert: Alert): Promise<boolean> {
     .map((date) => format(parseISO(date), "MMMM d, yyyy"))
     .join(", ");
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  const manageUrl = alert.managementToken ? `${siteUrl}/manage/${alert.managementToken}` : undefined;
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -310,6 +313,16 @@ export async function sendAlertConfirmation(alert: Alert): Promise<boolean> {
             <p style="margin: 24px 0 0 0; color: #78716c; font-size: 14px; font-weight: 400; line-height: 1.5;">
               We check availability regularly and will send you an email notification when tickets become available for your selected dates.
             </p>
+
+            ${manageUrl ? `
+            <div style="text-align: center; margin: 28px 0 6px 0;">
+              <a href="${manageUrl}"
+                 style="display: inline-block; padding: 10px 20px; background: #0c0a09; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 14px; letter-spacing: 0.02em;">
+                Manage My Alerts
+              </a>
+            </div>
+            <p style="margin: 0; color: #a8a29e; font-size: 12px; text-align: center;">This link lets you view, pause, or delete alerts.</p>
+            ` : ""}
           </div>
 
           <!-- Footer -->

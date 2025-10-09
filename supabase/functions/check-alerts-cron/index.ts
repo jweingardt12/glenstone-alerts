@@ -229,6 +229,14 @@ serve(async (req) => {
 
           // Find matching dates
           const matchedDates = availableDates.filter((date: CalendarDate) => {
+            // Skip dates in the past
+            const dateObj = new Date(date.date + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (dateObj < today) {
+              return false;
+            }
+
             // Check if date is in alert's date list
             if (!alert.dates.includes(date.date)) {
               return false;
