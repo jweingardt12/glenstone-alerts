@@ -117,6 +117,20 @@ export interface CreateAlertRequest {
   minCapacity?: number;
 }
 
+export type CronStatus = "started" | "completed" | "failed";
+
+export interface CronLog {
+  id: string;
+  status: CronStatus;
+  started_at: string;
+  completed_at: string | null;
+  duration_ms: number | null;
+  alerts_checked: number | null;
+  notifications_sent: number | null;
+  metadata: Record<string, unknown> | null;
+  error_message: string | null;
+}
+
 // Weather types
 export interface DailyWeather {
   date: string;

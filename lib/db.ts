@@ -1,7 +1,9 @@
 // Supabase database implementation for alerts
 import type { Alert, CreateAlertRequest, CronLog } from "./types";
-import { supabase } from "./supabase";
 import { generateManagementToken } from "./token";
+import { getSupabaseClient } from "./supabase";
+
+const supabase = () => getSupabaseClient();
 
 export const db = {
   cronLogs: {
@@ -9,7 +11,7 @@ export const db = {
      * Create a new cron log entry
      */
     start: async (): Promise<string> => {
-      const { data, error } = await supabase
+      const { data, error } = await supabase()
         .from("cron_logs")
         .insert({
           status: "started",
@@ -34,7 +36,7 @@ export const db = {
       notificationsSent: number,
       metadata?: Record<string, unknown>
     ): Promise<void> => {
-      const { data: logData, error: fetchError } = await supabase
+      const { data: logData, error: fetchError } = await supabase()
         .from("cron_logs")
         .select("started_at")
         .eq("id", logId)
@@ -49,7 +51,7 @@ export const db = {
       const completedAt = new Date();
       const durationMs = completedAt.getTime() - startedAt.getTime();
 
-      const { error } = await supabase
+      const { error } = await supabase()
         .from("cron_logs")
         .update({
           completed_at: completedAt.toISOString(),
@@ -70,7 +72,7 @@ export const db = {
      * Fail a cron log entry
      */
     fail: async (logId: string, errorMessage: string): Promise<void> => {
-      const { data: logData, error: fetchError } = await supabase
+      const { data: logData, error: fetchError } = await supabase()
         .from("cron_logs")
         .select("started_at")
         .eq("id", logId)
@@ -85,7 +87,7 @@ export const db = {
       const completedAt = new Date();
       const durationMs = completedAt.getTime() - startedAt.getTime();
 
-      const { error } = await supabase
+      const { error } = await supabase()
         .from("cron_logs")
         .update({
           completed_at: completedAt.toISOString(),
@@ -104,7 +106,7 @@ export const db = {
      * Get recent cron logs
      */
     getRecent: async (limit = 50): Promise<CronLog[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await supabase()
         .from("cron_logs")
         .select("*")
         .order("started_at", { ascending: false })
@@ -124,7 +126,7 @@ export const db = {
      * Create a new alert
      */
     create: async (request: CreateAlertRequest): Promise<Alert> => {
-      const { data, error } = await supabase
+      const { data, error } = await supabase()
         .from("alerts")
         .insert({
           email: request.email,
@@ -161,7 +163,7 @@ export const db = {
      * Get alert by ID
      */
     get: async (id: string): Promise<Alert | undefined> => {
-      const { data, error } = await supabase
+      const { data, error } = await supabase()
         .from("alerts")
         .select("*")
         .eq("id", id)
@@ -197,7 +199,7 @@ export const db = {
      * Get all alerts for an email
      */
     getByEmail: async (email: string): Promise<Alert[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await supabase()
         .from("alerts")
         .select("*")
         .eq("email", email)
@@ -227,7 +229,7 @@ export const db = {
      * Get all active alerts
      */
     getAllActive: async (): Promise<Alert[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await supabase()
         .from("alerts")
         .select("*")
         .eq("active", true)
@@ -277,7 +279,7 @@ export const db = {
       if (updates.managementToken !== undefined)
         updateData.management_token = updates.managementToken;
 
-      const { data, error } = await supabase
+      const { data, error } = await supabase()
         .from("alerts")
         .update(updateData)
         .eq("id", id)
@@ -314,7 +316,7 @@ export const db = {
      * Delete alert
      */
     delete: async (id: string): Promise<boolean> => {
-      const { error } = await supabase.from("alerts").delete().eq("id", id);
+      const { error } = await supabase().from("alerts").delete().eq("id", id);
 
       if (error) {
         console.error("Error deleting alert:", error);
@@ -328,7 +330,7 @@ export const db = {
      * Get all alerts
      */
     getAll: async (): Promise<Alert[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await supabase()
         .from("alerts")
         .select("*")
         .order("created_at", { ascending: false });
@@ -357,7 +359,7 @@ export const db = {
      * Update last checked time
      */
     updateLastChecked: async (id: string): Promise<void> => {
-      const { error } = await supabase
+      const { error } = await supabase()
         .from("alerts")
         .update({ last_checked: new Date().toISOString() })
         .eq("id", id);
@@ -371,7 +373,7 @@ export const db = {
      * Update last notified time (for 24-hour repeat logic)
      */
     updateLastNotified: async (id: string): Promise<void> => {
-      const { error } = await supabase
+      const { error } = await supabase()
         .from("alerts")
         .update({ last_notified_at: new Date().toISOString() })
         .eq("id", id);
@@ -386,7 +388,7 @@ export const db = {
      */
     getOrCreateManagementToken: async (email: string): Promise<string> => {
       // First, check if any alert for this email already has a token
-      const { data: existingAlerts, error: fetchError } = await supabase
+      const { data: existingAlerts, error: fetchError } = await supabase()
         .from("alerts")
         .select("management_token")
         .eq("email", email)
@@ -407,7 +409,7 @@ export const db = {
       const token = generateManagementToken();
 
       // Update all alerts for this email with the new token
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabase()
         .from("alerts")
         .update({ management_token: token })
         .eq("email", email);
@@ -424,7 +426,7 @@ export const db = {
      * Get all alerts by management token
      */
     getByToken: async (token: string): Promise<Alert[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await supabase()
         .from("alerts")
         .select("*")
         .eq("management_token", token)

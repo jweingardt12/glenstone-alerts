@@ -62,6 +62,8 @@ export function generateWeatherKitToken(): string {
   const expiresAt = issuedAt + 3600; // 1 hour from now
 
   // Create JWT token
+  const signingKey = privateKey as string;
+
   const token = jwt.sign(
     {
       iss: teamId,
@@ -69,14 +71,14 @@ export function generateWeatherKitToken(): string {
       exp: expiresAt,
       sub: serviceId,
     },
-    privateKey,
+    signingKey,
     {
       algorithm: "ES256",
+      keyid: keyId,
       header: {
         alg: "ES256",
-        kid: keyId,
-        id: `${teamId}.${serviceId}`,
         typ: "JWT",
+        kid: keyId,
       },
     }
   );
