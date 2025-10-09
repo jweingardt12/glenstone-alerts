@@ -85,12 +85,12 @@ function Calendar({
           defaultClassNames.caption_label
         ),
         table: "w-full border-collapse",
-        weekdays: cn("flex w-full", defaultClassNames.weekdays),
+        weekdays: cn("flex w-full border-b", defaultClassNames.weekdays),
         weekday: cn(
-          "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none h-10 flex items-center justify-center",
+          "text-muted-foreground flex-1 font-normal text-[0.8rem] select-none h-10 flex items-center justify-center border-r last:border-r-0",
           defaultClassNames.weekday
         ),
-        week: cn("flex w-full", defaultClassNames.week),
+        week: cn("flex w-full border-b last:border-b-0", defaultClassNames.week),
         week_number_header: cn(
           "select-none w-(--cell-size)",
           defaultClassNames.week_number_header
@@ -100,7 +100,7 @@ function Calendar({
           defaultClassNames.week_number
         ),
         day: cn(
-          "relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none flex-1",
+          "relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none flex-1 border-r last:border-r-0",
           defaultClassNames.day
         ),
         range_start: cn(

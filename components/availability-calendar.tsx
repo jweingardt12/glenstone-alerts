@@ -150,11 +150,14 @@ export function AvailabilityCalendar({
       {/* Calendar Grid */}
       <div className="border rounded-lg overflow-hidden bg-card">
         {/* Weekday Headers */}
-        <div className="grid grid-cols-7 bg-muted">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+        <div className="grid grid-cols-7 bg-muted border-b">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
             <div
               key={day}
-              className="p-3 text-center text-sm font-medium text-muted-foreground"
+              className={cn(
+                "p-3 text-center text-sm font-medium text-muted-foreground",
+                index < 6 && "border-r"
+              )}
             >
               {day}
             </div>
@@ -165,7 +168,13 @@ export function AvailabilityCalendar({
         <div className="grid grid-cols-7">
           {/* Padding days */}
           {paddingDays.map((_, i) => (
-            <div key={`padding-${i}`} className="aspect-square border-t border-r bg-muted/30" />
+            <div
+              key={`padding-${i}`}
+              className={cn(
+                "aspect-square border-b bg-muted/30",
+                (i % 7) < 6 && "border-r"
+              )}
+            />
           ))}
 
           {/* Actual days */}
@@ -177,15 +186,26 @@ export function AvailabilityCalendar({
             const isClosed = dayOfWeek >= 1 && dayOfWeek <= 3; // Monday, Tuesday, Wednesday
             const isAvailable = dayData?.status === "available";
             const isSoldOut = dayData?.status === "sold_out";
-            const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
+
+            // Check if date is past: either before today OR today but after 4:15pm
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const checkDate = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+            const isPastDate = checkDate < today;
+            const isToday = checkDate.getTime() === today.getTime();
+            const isPastCutoff = isToday && (now.getHours() > 16 || (now.getHours() === 16 && now.getMinutes() >= 15));
+            const isPast = isPastDate || isPastCutoff;
+
             const hasNoData = !dayData;
             const isFutureWithNoData = !isPast && !isClosed && hasNoData;
+            const isLastColumn = dayOfWeek === 6; // Saturday
 
             return (
               <div
                 key={dateStr}
                 className={cn(
-                  "aspect-square border-t border-r relative group overflow-hidden transition-all duration-200",
+                  "aspect-square border-b relative group overflow-hidden transition-all duration-200",
+                  !isLastColumn && "border-r",
                   isPast && "bg-muted/30",
                   isClosed && "bg-muted/50",
                   isFutureWithNoData && "bg-background hover:bg-muted/30 hover:shadow-md hover:scale-[1.02] hover:z-10 cursor-pointer",
@@ -194,7 +214,7 @@ export function AvailabilityCalendar({
                 )}
               >
                 <div
-                  className="absolute inset-0 p-2 flex flex-col"
+                  className="absolute inset-0 p-4 flex flex-col"
                   onClick={() => {
                     if (isAvailable && dayData && !isClosed) {
                       handleDayClick(dateStr, dayData);

@@ -38,7 +38,8 @@ import {
 } from "@/components/ui/sheet";
 import type { Alert, TimeSlot } from "@/lib/types";
 
-const TIME_SLOTS: TimeSlot[] = [
+// Original time slots in ascending order
+const TIME_SLOTS_ORDERED: TimeSlot[] = [
   "10:00", "10:15", "10:30", "10:45",
   "11:00", "11:15", "11:30", "11:45",
   "12:00", "12:15", "12:30", "12:45",
@@ -47,6 +48,34 @@ const TIME_SLOTS: TimeSlot[] = [
   "15:00", "15:15", "15:30", "15:45",
   "16:00", "16:15"
 ];
+
+// Reorder for vertical flow in 4 columns (26 slots, ~7 per column)
+const TIME_SLOTS: TimeSlot[] = [
+  // Column 1 (7 slots)
+  "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30",
+  // Column 2 (7 slots)
+  "11:45", "12:00", "12:15", "12:30", "12:45", "13:00", "13:15",
+  // Column 3 (6 slots)
+  "13:30", "13:45", "14:00", "14:15", "14:30", "14:45",
+  // Column 4 (6 slots)
+  "15:00", "15:15", "15:30", "15:45", "16:00", "16:15"
+];
+
+// Time range presets
+const TIME_RANGES = {
+  morning: TIME_SLOTS_ORDERED.filter(time => {
+    const hour = parseInt(time.split(":")[0]);
+    return hour >= 10 && hour < 12;
+  }),
+  midday: TIME_SLOTS_ORDERED.filter(time => {
+    const hour = parseInt(time.split(":")[0]);
+    return hour >= 12 && hour < 14;
+  }),
+  afternoon: TIME_SLOTS_ORDERED.filter(time => {
+    const hour = parseInt(time.split(":")[0]);
+    return hour >= 14;
+  }),
+};
 
 // Glenstone is closed Monday–Wednesday (JS Date.getDay: Mon=1, Tue=2, Wed=3)
 const CLOSED_WEEKDAYS = new Set([1, 2, 3]);
@@ -354,11 +383,18 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                             field.onChange(sanitizedDates);
                           }}
                           disabled={(date) => {
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            const checkDate = new Date(date);
-                            checkDate.setHours(0, 0, 0, 0);
-                            return checkDate < today || isClosedDay(checkDate);
+                            const now = new Date();
+                            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                            const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+                            // Disable if date is before today
+                            const isPastDate = checkDate < today;
+
+                            // Disable if date is today but after 4:15pm cutoff
+                            const isToday = checkDate.getTime() === today.getTime();
+                            const isPastCutoff = isToday && (now.getHours() > 16 || (now.getHours() === 16 && now.getMinutes() >= 15));
+
+                            return isPastDate || isPastCutoff || isClosedDay(checkDate);
                           }}
                           className="rounded-md border w-full [&_.rdp]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-caption]:flex [&_.rdp-caption]:justify-between [&_.rdp-caption]:items-center [&_.rdp-caption]:px-2 [&_.rdp-nav]:flex [&_.rdp-nav]:space-x-1 [&_.rdp-head]:w-full [&_.rdp-head_row]:grid [&_.rdp-head_row]:grid-cols-7 [&_.rdp-head_row]:text-center [&_.rdp-tbody]:w-full [&_.rdp-tbody]:space-y-1 [&_.rdp-row]:grid [&_.rdp-row]:grid-cols-7 [&_.rdp-row]:gap-1 [&_.rdp-cell]:relative [&_.rdp-day]:h-[var(--cell-size)] [&_.rdp-day]:w-[var(--cell-size)] [&_.rdp-day]:aspect-auto [&_.rdp-day_button]:h-full [&_.rdp-day_button]:w-full [&_.rdp-day_button]:rounded-md"
                         />
@@ -387,7 +423,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
             <FormField
               control={form.control}
               name="preferredTimes"
-              render={() => (
+              render={({ field }) => (
                 <FormItem>
                   <div className="mb-4">
                     <FormLabel className="text-base">Preferred Time Slots</FormLabel>
@@ -395,7 +431,65 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                       Select specific times you&apos;d prefer. Leave unchecked to accept any time.
                     </FormDescription>
                   </div>
-                  <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+
+                  {/* Preset buttons */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const currentTimes = field.value || [];
+                        const morningTimes = TIME_RANGES.morning.filter(time =>
+                          !selectedDates.some(date => isTimeSlotInPast(date, time))
+                        );
+                        const newTimes = Array.from(new Set([...currentTimes, ...morningTimes]));
+                        field.onChange(newTimes);
+                      }}
+                    >
+                      Morning
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const currentTimes = field.value || [];
+                        const middayTimes = TIME_RANGES.midday.filter(time =>
+                          !selectedDates.some(date => isTimeSlotInPast(date, time))
+                        );
+                        const newTimes = Array.from(new Set([...currentTimes, ...middayTimes]));
+                        field.onChange(newTimes);
+                      }}
+                    >
+                      Mid-day
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const currentTimes = field.value || [];
+                        const afternoonTimes = TIME_RANGES.afternoon.filter(time =>
+                          !selectedDates.some(date => isTimeSlotInPast(date, time))
+                        );
+                        const newTimes = Array.from(new Set([...currentTimes, ...afternoonTimes]));
+                        field.onChange(newTimes);
+                      }}
+                    >
+                      Afternoon
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => field.onChange([])}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-x-4 gap-y-2 max-h-48 overflow-y-auto">
                     {TIME_SLOTS.map((time) => {
                       // Check if any selected date is today and if this time is in the past
                       const isPastTime = selectedDates.some((date) => isTimeSlotInPast(date, time));

@@ -10,6 +10,7 @@ import { TimeSlotModal } from "@/components/time-slot-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CalendarSkeleton, ListSkeleton } from "@/components/calendar-skeleton";
 // import { format, parseISO } from "date-fns";
 import { ExternalLink, RotateCw } from "lucide-react";
 import type {
@@ -68,7 +69,13 @@ export default function Home() {
       if (isManualRefresh) {
         track("availability_refreshed");
       }
-      const response = await fetch(`/api/availability?quantity=${quantity}`);
+
+      // Start both the fetch and the minimum delay timer
+      const [response] = await Promise.all([
+        fetch(`/api/availability?quantity=${quantity}`),
+        new Promise(resolve => setTimeout(resolve, 1000)) // Minimum 1 second
+      ]);
+
       if (!response.ok) throw new Error("Failed to fetch availability");
       const data: CalendarResponse = await response.json();
       setCalendarData(data.calendar._data);
@@ -118,7 +125,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
-      <header className="relative w-full h-[200px] sm:h-[250px] md:h-[300px] overflow-hidden">
+      <header className="relative w-full h-[160px] sm:h-[250px] md:h-[300px] overflow-hidden">
         {/* Background Image */}
         <Image
           src="/glenstone.jpeg"
@@ -133,10 +140,15 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60 dark:from-black/70 dark:via-black/50 dark:to-black/70 transition-colors duration-300" />
 
         {/* Content */}
-        <div className="relative h-full container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="relative h-full container mx-auto px-4 sm:px-6 py-4 sm:py-8">
           <div className="max-w-5xl mx-auto h-full">
+            {/* Theme toggle - absolute positioned on mobile, flex on desktop */}
+            <div className="absolute top-4 right-4 sm:hidden z-10">
+              <ThemeToggle />
+            </div>
+
             <div className="flex h-full flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-end h-full pb-6 sm:pb-12">
+              <div className="flex items-end h-full pb-4 sm:pb-12 pr-12 sm:pr-0">
                 <div className="flex items-center gap-3">
                   <Link href="/" className="transition-transform hover:scale-105 shrink-0">
                     <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28">
@@ -175,7 +187,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center justify-end self-end sm:self-auto">
+              <div className="hidden sm:flex items-center justify-end self-end sm:self-auto">
                 <ThemeToggle />
               </div>
             </div>
@@ -214,14 +226,17 @@ export default function Home() {
             <Card>
               <CardContent className="p-4 sm:p-6">
                 {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                      <p className="mt-4 text-sm text-muted-foreground font-light">
-                        Loading availability...
-                      </p>
+                  <>
+                    {/* Calendar skeleton for desktop */}
+                    <div className="hidden md:block">
+                      <CalendarSkeleton />
                     </div>
-                  </div>
+
+                    {/* List skeleton for mobile */}
+                    <div className="md:hidden">
+                      <ListSkeleton />
+                    </div>
+                  </>
                 ) : (
                   <>
                     {/* Calendar view for desktop */}
@@ -277,21 +292,21 @@ export default function Home() {
                   <div>
                     <h3 className="font-normal text-foreground mb-2">How does this work?</h3>
                     <p className="text-muted-foreground font-light leading-relaxed">
-                      This tool checks Glenstone&apos;s ticket availability every 30 minutes. Create an alert by selecting your preferred dates, and we&apos;ll email you when tickets become available.
+                      This tool checks Glenstone&apos;s ticket availability every 30 minutes. Create an alert by selecting your preferred dates, and we&apos;ll email you when tickets become available. You'll still need to check out on the Glenstone site - all this does is notify you when tickets become available.
                     </p>
                   </div>
 
                   <div>
                     <h3 className="font-normal text-foreground mb-2">Is this official?</h3>
                     <p className="text-muted-foreground font-light leading-relaxed">
-                      No, this is an unofficial tool created to help visitors secure tickets. It is not affiliated with or endorsed by Glenstone Museum.
+                      No, this is an unofficial tool created to help visitors secure tickets. It is not affiliated with or endorsed by Glenstone Museum
                     </p>
                   </div>
 
                   <div>
-                    <h3 className="font-normal text-foreground mb-2">How much do tickets cost?</h3>
+                    <h3 className="font-normal text-foreground mb-2">Why make this?</h3>
                     <p className="text-muted-foreground font-light leading-relaxed">
-                      Admission to Glenstone Museum is completely free, but advance reservation is required. This service is also free.
+                      Glenstone is great, but it can be hard to plan an outing on short notice or for groups. This tool helps people plan ahead and get notified when availability opens up for their preferred dates and party size.
                     </p>
                   </div>
 
@@ -321,7 +336,7 @@ export default function Home() {
                   rel="noopener noreferrer"
                   className="hover:underline"
                 >
-                  Jason
+                  <span className="font-semibold">Jason</span> in Potomac, MD
                 </a>
               </p>
               <span className="hidden sm:inline text-muted-foreground">•</span>
@@ -356,7 +371,7 @@ export default function Home() {
                 </a>
               </p>
               <p className="text-sm text-muted-foreground font-light">
-                Unofficial tool • Not affiliated with Glenstone Museum
+                Not affiliated with Glenstone Museum
               </p>
             </div>
           </div>
