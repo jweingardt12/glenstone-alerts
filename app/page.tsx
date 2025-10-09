@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { AlertForm } from "@/components/alert-form";
 import { AvailabilityList } from "@/components/availability-list";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
@@ -20,6 +21,12 @@ export default function Home() {
   const [calendarData, setCalendarData] = useState<CalendarDate[]>([]);
   const [loading, setLoading] = useState(true);
   const quantity = 2;
+
+  // Rotate through art-related emojis
+  const artEmoji = useMemo(() => {
+    const emojis = ['🎨', '🖼️', '🎭', '🗿', '🏛️'];
+    return emojis[Math.floor(Math.random() * emojis.length)];
+  }, []);
 
   // Modal states
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
@@ -87,14 +94,23 @@ export default function Home() {
         <div className="relative h-full container mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex items-start justify-between h-full">
             <div className="flex items-end h-full pb-8 sm:pb-12">
-              <div className="space-y-1">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-wide text-white drop-shadow-lg">
-                  Glenstone Alerts
-                </h1>
-                <p className="text-sm sm:text-base md:text-lg text-white/90 font-light drop-shadow-md">
-                  Free admission • Advance reservation required
-                </p>
-              </div>
+              <Link href="/" className="flex items-center gap-3 group">
+                <Image
+                  src="/logo.webp"
+                  alt="Glenstone Alerts Logo"
+                  width={80}
+                  height={80}
+                  className="rounded-lg transition-transform group-hover:scale-105"
+                />
+                <div className="space-y-1">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-wide text-white drop-shadow-lg group-hover:text-white/90 transition-colors">
+                    Glenstone Alerts
+                  </h1>
+                  <p className="text-sm sm:text-base md:text-lg text-white/90 font-light drop-shadow-md">
+                    A simple tool to help reserve free timed entry passes for the Glenstone Museum
+                  </p>
+                </div>
+              </Link>
             </div>
             <ThemeToggle />
           </div>
@@ -238,6 +254,18 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 py-8">
           <div className="max-w-5xl mx-auto space-y-4">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
+              <p className="text-muted-foreground font-light">
+                Made with {artEmoji} by{" "}
+                <a
+                  href="https://jwe.in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  Jason
+                </a>
+              </p>
+              <span className="hidden sm:inline text-muted-foreground">•</span>
               <a
                 href="https://github.com/jweingardt12/glenstone-alerts"
                 target="_blank"
@@ -245,16 +273,6 @@ export default function Home() {
                 className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light"
               >
                 GitHub
-                <ExternalLink className="h-3 w-3" />
-              </a>
-              <span className="hidden sm:inline text-muted-foreground">•</span>
-              <a
-                href="https://jwe.in"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light"
-              >
-                jwe.in
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>

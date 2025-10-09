@@ -214,17 +214,11 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
         onSuccess(createdAlert);
       }
 
-      // Build management URL if token exists
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
-      const manageUrl = createdAlert.managementToken ? `${siteUrl}/manage/${createdAlert.managementToken}` : undefined;
-
       setAlertModal({
         isOpen: true,
         type: "success",
         title: "Alert Created",
-        message: "You'll receive an email notification when tickets become available for your selected dates.",
-        actionLabel: manageUrl ? "Manage My Alerts" : undefined,
-        actionUrl: manageUrl,
+        message: "You'll receive an email notification when tickets become available for your selected dates. Check your email for a link to manage your alerts.",
       });
     } catch (error) {
       console.error("Error creating alert:", error);

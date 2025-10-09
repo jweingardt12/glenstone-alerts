@@ -49,6 +49,9 @@ function generateManagementEmail(email: string, token: string, alertsCount: numb
 
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+            <div style="margin-bottom: 20px;">
+              <img src="https://tbekcbbaxketpnztydvl.supabase.co/storage/v1/object/public/images/email-logo.png" alt="Glenstone Alerts" style="width: 80px; height: 80px; border-radius: 8px;" />
+            </div>
             <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700;">📋 Manage Your Alerts</h1>
             <p style="margin: 10px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px;">
               You already have ${alertsCount} alert${alertsCount !== 1 ? 's' : ''} set up!
@@ -121,6 +124,9 @@ function generateConfirmationEmail(alert: Alert, manageUrl?: string): string {
 
           <!-- Header -->
           <div style="background: #1c1917; padding: 32px; border-bottom: 1px solid #e7e5e4;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <img src="https://tbekcbbaxketpnztydvl.supabase.co/storage/v1/object/public/images/email-logo.png" alt="Glenstone Alerts" style="width: 80px; height: 80px; border-radius: 8px;" />
+            </div>
             <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 300; letter-spacing: 0.025em;">Alert Created</h1>
             <p style="margin: 8px 0 0 0; color: #d6d3d1; font-size: 15px; font-weight: 300;">
               Your availability alert has been set up

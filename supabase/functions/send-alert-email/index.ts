@@ -172,6 +172,9 @@ function generateAvailabilityEmail(
 
           <!-- Header -->
           <div style="background: #1c1917; padding: 32px; border-bottom: 1px solid #e7e5e4;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <img src="https://tbekcbbaxketpnztydvl.supabase.co/storage/v1/object/public/images/email-logo.png" alt="Glenstone Alerts" style="width: 80px; height: 80px; border-radius: 8px;" />
+            </div>
             <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 300; letter-spacing: 0.025em;">
               Glenstone Tickets Available
             </h1>

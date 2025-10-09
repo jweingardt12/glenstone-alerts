@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     { media: "(prefers-color-scheme: dark)", color: "#0c0a09" },
   ],
   icons: {
-    icon: "/favicon.ico",
+    icon: "/logo.webp",
   },
 };
 
