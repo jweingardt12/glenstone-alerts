@@ -44,61 +44,63 @@ function generateManagementEmail(email: string, token: string, alertsCount: numb
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Manage Your Alerts</title>
       </head>
-      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background: #f3f4f6;">
-        <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1c1917; margin: 0; padding: 0; background: #fafaf9;">
+        <div style="max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); overflow: hidden; border: 1px solid #e7e5e4;">
 
           <!-- Header -->
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-            <div style="margin-bottom: 20px;">
+          <div style="background: #1c1917; padding: 32px; border-bottom: 1px solid #e7e5e4;">
+            <div style="text-align: center; margin-bottom: 24px;">
               <img src="https://tbekcbbaxketpnztydvl.supabase.co/storage/v1/object/public/images/email-logo.png" alt="Glenstone Alerts" style="width: 80px; height: 80px; border-radius: 8px;" />
             </div>
-            <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700;">📋 Manage Your Alerts</h1>
-            <p style="margin: 10px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 16px;">
-              You already have ${alertsCount} alert${alertsCount !== 1 ? 's' : ''} set up!
+            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 300; letter-spacing: 0.025em;">Manage Your Alerts</h1>
+            <p style="margin: 8px 0 0 0; color: #d6d3d1; font-size: 15px; font-weight: 300;">
+              You already have ${alertsCount} alert${alertsCount !== 1 ? 's' : ''} set up
             </p>
           </div>
 
           <!-- Content -->
-          <div style="padding: 30px;">
-            <p style="margin: 0 0 20px 0; font-size: 16px; color: #4b5563;">
+          <div style="padding: 32px;">
+            <p style="margin: 0 0 24px 0; font-size: 15px; color: #57534e; font-weight: 400; line-height: 1.6;">
               We noticed you tried to create a new alert, but you already have alerts configured for <strong>${email}</strong>.
             </p>
 
-            <p style="margin: 0 0 20px 0; font-size: 16px; color: #4b5563;">
+            <p style="margin: 0 0 24px 0; font-size: 15px; color: #57534e; font-weight: 400; line-height: 1.6;">
               Click the button below to view and manage all your existing alerts. You can edit dates, change preferences, or delete alerts you no longer need.
             </p>
 
-            <div style="text-align: center; margin: 30px 0;">
+            <div style="text-align: center; margin: 32px 0 0 0;">
               <a href="${manageUrl}"
-                 style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Manage My Alerts →
+                 style="display: inline-block; padding: 14px 32px; background: #1c1917; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 15px; letter-spacing: 0.025em;">
+                Manage My Alerts
               </a>
             </div>
+            <p style="margin: 12px 0 0 0; color: #a8a29e; font-size: 13px; text-align: center; line-height: 1.5;">
+              View, edit, pause, or delete your alerts anytime
+            </p>
 
-            <div style="margin-top: 20px; padding: 15px; background: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6;">
-              <p style="margin: 0; color: #1e40af; font-size: 14px;">
-                <strong>🔒 Secure Link</strong><br>
-                This link is unique to your email address and allows you to manage all your alerts securely. Don't share it with others!
+            <div style="margin-top: 32px; padding: 20px; background: #f5f5f4; border-radius: 4px; border: 1px solid #e7e5e4;">
+              <p style="margin: 0; color: #57534e; font-size: 14px; font-weight: 400; line-height: 1.5;">
+                <strong style="font-weight: 500; color: #1c1917;">Secure Link:</strong> This link is unique to your email address and allows you to manage all your alerts securely. Don't share it with others.
               </p>
             </div>
 
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0; color: #6b7280; font-size: 14px;">
-                <strong>Note:</strong> If you want to add a new alert, you can do so from the management page after clicking the button above.
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e7e5e4;">
+              <p style="margin: 0; color: #78716c; font-size: 14px; font-weight: 400; line-height: 1.5;">
+                <strong style="font-weight: 500; color: #1c1917;">Note:</strong> If you want to add a new alert, you can do so from the management page after clicking the button above.
               </p>
             </div>
           </div>
 
           <!-- Footer -->
-          <div style="background: #f9fafb; padding: 20px 30px; border-top: 1px solid #e5e7eb;">
-            <p style="margin: 0; color: #6b7280; font-size: 13px; text-align: center;">
-              This is an automated message from Glenstone Ticket Alerts.
+          <div style="background: #fafaf9; padding: 24px 32px; border-top: 1px solid #e7e5e4;">
+            <p style="margin: 0; color: #78716c; font-size: 13px; text-align: center; line-height: 1.5;">
+              Automated notification from Glenstone Ticket Alerts
               <br>
-              <a href="https://glenstone.org" style="color: #667eea; text-decoration: none;">Visit Glenstone.org</a>
-              for official information.
+              <a href="https://glenstone.org" style="color: #1c1917; text-decoration: none; font-weight: 400;">Visit Glenstone.org</a>
+              for official information
             </p>
-            <p style="margin: 10px 0 0 0; color: #9ca3af; font-size: 12px; text-align: center;">
-              Not affiliated with Glenstone Museum. This is an unofficial monitoring service.
+            <p style="margin: 12px 0 0 0; color: #a8a29e; font-size: 12px; text-align: center; font-weight: 300;">
+              Not affiliated with Glenstone Museum • Unofficial monitoring service
             </p>
           </div>
         </div>
