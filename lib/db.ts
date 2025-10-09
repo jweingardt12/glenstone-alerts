@@ -131,7 +131,7 @@ export const db = {
         .insert({
           email: request.email,
           dates: request.dates,
-          time_of_day: request.timeOfDay || 'any',
+          time_of_day: 'any', // Kept for backward compatibility
           preferred_times: request.preferredTimes || null,
           quantity: request.quantity,
           min_capacity: request.minCapacity,
