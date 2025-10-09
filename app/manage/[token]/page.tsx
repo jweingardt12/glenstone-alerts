@@ -34,11 +34,11 @@ export default async function ManageAlertsPage({ params }: PageProps) {
   // Fetch alerts
   const alerts = await getAlerts(token);
 
-  if (!alerts || alerts.length === 0) {
-    notFound();
-  }
+  // Gracefully handle empty state instead of 404
+  const hadError = alerts === null;
+  const hasAlerts = Array.isArray(alerts) && alerts.length > 0;
 
-  const email = alerts[0].email;
+  const email = hasAlerts ? alerts![0].email : undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -96,47 +96,92 @@ export default async function ManageAlertsPage({ params }: PageProps) {
           <div className="space-y-4 sm:space-y-6">
             {/* Page Header */}
             <div>
-              <h2 className="text-xl sm:text-2xl font-light">
-                Manage Your Alerts
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Viewing alerts for <strong className="font-normal">{email}</strong>
-              </p>
+              <h2 className="text-xl sm:text-2xl font-light">Manage Your Alerts</h2>
+              {email ? (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Viewing alerts for <strong className="font-normal">{email}</strong>
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Use this page to view and manage your alerts.
+                </p>
+              )}
             </div>
 
             {/* Alerts List */}
             <div className="bg-card border rounded-sm p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
-                <h3 className="text-2xl font-light">
-                  Your Alerts ({alerts.length})
-                </h3>
-                <UnsubscribeButton token={token} />
+                <h3 className="text-2xl font-light">Your Alerts ({hasAlerts ? alerts!.length : 0})</h3>
+                {hasAlerts && <UnsubscribeButton token={token} />}
               </div>
-              <AlertsManager initialAlerts={alerts} />
+
+              {hadError ? (
+                <div className="text-center py-10 sm:py-16">
+                  <p className="text-muted-foreground font-light max-w-xl mx-auto">
+                    We couldn&apos;t load your alerts right now. Please refresh the page or try again later.
+                  </p>
+                  <div className="mt-6 flex items-center justify-center gap-3">
+                    <Link
+                      href="/"
+                      className="inline-flex items-center justify-center px-4 py-2 border rounded-sm text-sm font-light hover:bg-muted transition-colors"
+                    >
+                      Go to homepage
+                    </Link>
+                  </div>
+                </div>
+              ) : hasAlerts ? (
+                <AlertsManager initialAlerts={alerts!} />
+              ) : (
+                <div className="text-center py-10 sm:py-16">
+                  <p className="text-muted-foreground font-light max-w-xl mx-auto">
+                    There are no alerts associated with this link yet. You might have deleted or unsubscribed from your alerts, or you haven&apos;t created any.
+                  </p>
+                  <div className="mt-6 flex items-center justify-center gap-3">
+                    <Link
+                      href="/"
+                      className="inline-flex items-center justify-center px-4 py-2 border rounded-sm text-sm font-light hover:bg-muted transition-colors"
+                    >
+                      Create a new alert
+                    </Link>
+                    <Link
+                      href="/"
+                      className="inline-flex items-center justify-center px-4 py-2 border rounded-sm text-sm font-light text-muted-foreground hover:bg-muted/50 transition-colors"
+                    >
+                      Go to homepage
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Info Section */}
             <div className="bg-muted/50 border rounded-sm p-6">
-              <h3 className="text-lg font-light mb-4">
-                How It Works
-              </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground font-light leading-relaxed">
-                <li>
-                  • <strong className="font-normal">Active alerts</strong> will notify you when tickets
-                  become available
-                </li>
-                <li>
-                  • <strong className="font-normal">Deactivate</strong> an alert to pause notifications
-                  without deleting it
-                </li>
-                <li>
-                  • <strong className="font-normal">Delete</strong> an alert permanently if you no longer
-                  need it
-                </li>
-                <li>
-                  • We check availability regularly throughout the day
-                </li>
-              </ul>
+              <h3 className="text-lg font-light mb-4">How It Works</h3>
+              {hasAlerts ? (
+                <ul className="space-y-2 text-sm text-muted-foreground font-light leading-relaxed">
+                  <li>
+                    • <strong className="font-normal">Active alerts</strong> will notify you when tickets
+                    become available
+                  </li>
+                  <li>
+                    • <strong className="font-normal">Deactivate</strong> an alert to pause notifications
+                    without deleting it
+                  </li>
+                  <li>
+                    • <strong className="font-normal">Delete</strong> an alert permanently if you no longer
+                    need it
+                  </li>
+                  <li>
+                    • We check availability regularly throughout the day
+                  </li>
+                </ul>
+              ) : (
+                <ul className="space-y-2 text-sm text-muted-foreground font-light leading-relaxed">
+                  <li>• Create an alert for your preferred dates and party size.</li>
+                  <li>• We&apos;ll email you when tickets open up for your preferences.</li>
+                  <li>• Manage, pause, or delete alerts anytime using your link.</li>
+                </ul>
+              )}
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
 # Glenstone Alerts
 
-Get notified when [Glenstone Museum](https://glenstone.org) tickets open up.
+![Glenstone Alerts](public/og.jpg)
+
+A simple tool to get notified when free timed-entry [Glenstone Museum](https://glenstone.org) tickets open up.
 
 ## What It Does
 
