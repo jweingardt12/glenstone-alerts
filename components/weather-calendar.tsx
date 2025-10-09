@@ -7,7 +7,6 @@ import { DayButton, DayPicker } from "react-day-picker";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { WeatherIcon } from "@/components/weather-icon";
 import type { WeatherResponse } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 type WeatherCalendarProps = React.ComponentProps<typeof DayPicker>;
 

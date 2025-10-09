@@ -195,7 +195,7 @@ export default function Home() {
                   <div>
                     <h3 className="font-normal text-foreground mb-2">How does this work?</h3>
                     <p className="text-muted-foreground font-light leading-relaxed">
-                      This tool checks Glenstone's ticket availability hourly. Create an alert by selecting your preferred dates, and we'll email you when tickets become available.
+                      This tool checks Glenstone&apos;s ticket availability hourly. Create an alert by selecting your preferred dates, and we&apos;ll email you when tickets become available.
                     </p>
                   </div>
 
