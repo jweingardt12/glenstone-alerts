@@ -3,6 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { OpenPanelComponent } from "@openpanel/nextjs";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -87,6 +88,11 @@ export default function RootLayout({
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
       >
+        <OpenPanelComponent
+          clientId={process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID || ""}
+          trackScreenViews={true}
+          trackOutgoingLinks={true}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

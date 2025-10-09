@@ -478,5 +478,26 @@ export const db = {
       console.log("Deactivated alerts:", data);
       return data?.length || 0;
     },
+
+    /**
+     * Delete all alerts by management token (unsubscribe)
+     */
+    deleteAllByToken: async (token: string): Promise<number> => {
+      console.log("Deleting alerts for token:", token);
+
+      const { data, error } = await supabase()
+        .from("alerts")
+        .delete()
+        .eq("management_token", token)
+        .select();
+
+      if (error) {
+        console.error("Error deleting alerts by token:", error);
+        throw new Error(`Failed to delete alerts: ${error.message}`);
+      }
+
+      console.log("Deleted alerts:", data);
+      return data?.length || 0;
+    },
   },
 };

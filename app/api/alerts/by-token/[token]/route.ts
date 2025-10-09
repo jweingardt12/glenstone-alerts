@@ -38,14 +38,14 @@ export async function GET(
   }
 }
 
-// PATCH /api/alerts/by-token/[token] - Deactivate all alerts for this token
+// PATCH /api/alerts/by-token/[token] - Delete all alerts for this token
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
     const { token } = await params;
-    console.log("Unsubscribe request for token:", token);
+    console.log("Delete all alerts request for token:", token);
 
     // Validate token format
     if (!isValidTokenFormat(token)) {
@@ -68,20 +68,20 @@ export async function PATCH(
       );
     }
 
-    // Deactivate all alerts
-    console.log("Deactivating alerts...");
-    const deactivatedCount = await db.alerts.deactivateAllByToken(token);
-    console.log("Deactivated count:", deactivatedCount);
+    // Delete all alerts
+    console.log("Deleting alerts...");
+    const deletedCount = await db.alerts.deleteAllByToken(token);
+    console.log("Deleted count:", deletedCount);
 
     return NextResponse.json({
       success: true,
-      deactivatedCount,
-      message: `Successfully deactivated ${deactivatedCount} alert${deactivatedCount !== 1 ? 's' : ''}`
+      deletedCount,
+      message: `Successfully deleted ${deletedCount} alert${deletedCount !== 1 ? 's' : ''}`
     });
   } catch (error) {
-    console.error("Error deactivating alerts by token:", error);
+    console.error("Error deleting alerts by token:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to deactivate alerts" },
+      { error: error instanceof Error ? error.message : "Failed to delete alerts" },
       { status: 500 }
     );
   }

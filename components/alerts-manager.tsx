@@ -3,12 +3,14 @@
 import { useState } from "react";
 import type { Alert } from "@/lib/types";
 import { AlertModal } from "@/components/alert-modal";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 interface AlertsManagerProps {
   initialAlerts: Alert[];
 }
 
 export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
+  const { track } = useOpenPanel();
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
   // const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
@@ -48,6 +50,7 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
         throw new Error("Failed to delete alert");
       }
 
+      track("alert_deleted");
       setAlerts((prevAlerts) => prevAlerts.filter((alert) => alert.id !== id));
       setAlertModal({
         isOpen: true,

@@ -5,6 +5,7 @@ import { Moon, Sun } from "lucide-react"
 import { flushSync } from "react-dom"
 
 import { cn } from "@/lib/utils"
+import { useOpenPanel } from "@openpanel/nextjs"
 
 interface AnimatedThemeTogglerProps
   extends React.ComponentPropsWithoutRef<"button"> {
@@ -16,6 +17,7 @@ export const AnimatedThemeToggler = ({
   duration = 400,
   ...props
 }: AnimatedThemeTogglerProps) => {
+  const { track } = useOpenPanel()
   const [isDark, setIsDark] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
@@ -44,6 +46,9 @@ export const AnimatedThemeToggler = ({
         setIsDark(newTheme)
         document.documentElement.classList.toggle("dark")
         localStorage.setItem("theme", newTheme ? "dark" : "light")
+        track("theme_toggled", {
+          newTheme: newTheme ? "dark" : "light",
+        })
       })
     }).ready
 
@@ -69,7 +74,7 @@ export const AnimatedThemeToggler = ({
         pseudoElement: "::view-transition-new(root)",
       }
     )
-  }, [isDark, duration])
+  }, [isDark, duration, track])
 
   return (
     <button

@@ -32,6 +32,7 @@ Glenstone Museum offers free admission with advance reservation. Tickets are rel
 - **Cron Jobs**: Supabase pg_cron checks availability every 30 minutes
 - **Email**: Mailgun for transactional emails
 - **Weather**: Apple WeatherKit API for forecasts
+- **Analytics**: OpenPanel for privacy-friendly analytics
 - **Deployment**: Vercel for hosting
 
 The app uses Glenstone's public ticketing API to check availability and never interacts with the booking system directly.
@@ -44,6 +45,27 @@ The app uses Glenstone's public ticketing API to check availability and never in
 - **Alert management** - Update, pause, or delete alerts via email management links
 - **Notification cooldown** - 24-hour gap between alerts to avoid spam
 - **Responsive design** - Works seamlessly on desktop and mobile
+
+## Development Setup
+
+To run this project locally, you'll need to set up the following environment variables in a `.env.local` file:
+
+```bash
+# OpenPanel Analytics
+NEXT_PUBLIC_OPENPANEL_CLIENT_ID=your_openpanel_client_id
+
+# Other required environment variables
+# (Supabase, Mailgun, WeatherKit, etc.)
+```
+
+### Analytics Events Tracked
+
+The application tracks the following anonymous events via OpenPanel:
+
+- **Alert Actions**: `alert_created`, `alert_deleted`, `alerts_deleted_all`
+- **User Interactions**: `booking_link_clicked`, `availability_refreshed`, `time_slot_viewed`, `alert_modal_opened`, `theme_toggled`
+
+All tracking is privacy-friendly with no user identification.
 
 ## Legal
 

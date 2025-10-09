@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertModal } from "@/components/alert-modal";
+import { useOpenPanel } from "@openpanel/nextjs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,7 @@ interface UnsubscribeButtonProps {
 }
 
 export function UnsubscribeButton({ token }: UnsubscribeButtonProps) {
+  const { track } = useOpenPanel();
   const [isUnsubscribing, setIsUnsubscribing] = useState(false);
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
@@ -49,30 +51,30 @@ export function UnsubscribeButton({ token }: UnsubscribeButtonProps) {
         throw new Error("Invalid response from server");
       }
 
-      console.log("Unsubscribe response:", { status: response.status, data });
+      console.log("Delete all alerts response:", { status: response.status, data });
 
       if (!response.ok) {
-        throw new Error(data.error || `Failed to unsubscribe (status: ${response.status})`);
+        throw new Error(data.error || `Failed to delete alerts (status: ${response.status})`);
       }
 
+      track("alerts_deleted_all");
       setAlertModal({
         isOpen: true,
         type: "success",
-        title: "Unsubscribed Successfully",
-        message: data.message || "All alerts have been deactivated. You will no longer receive email notifications.",
+        title: "Alerts Deleted Successfully",
+        message: data.message || "All alerts have been permanently deleted. You will no longer receive email notifications.",
       });
 
-      // Refresh the page after showing the success message
+      // Redirect to home page after showing the success message
       setTimeout(() => {
-        // Use router refresh to avoid cache issues
-        window.location.href = window.location.href;
+        window.location.href = "/";
       }, 1500);
     } catch (error) {
-      console.error("Error unsubscribing:", error);
+      console.error("Error deleting alerts:", error);
       setAlertModal({
         isOpen: true,
         type: "error",
-        title: "Failed to Unsubscribe",
+        title: "Failed to Delete Alerts",
         message: error instanceof Error ? error.message : "An unexpected error occurred. Please try again.",
       });
     } finally {
@@ -85,15 +87,15 @@ export function UnsubscribeButton({ token }: UnsubscribeButtonProps) {
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button variant="destructive" size="sm">
-            Unsubscribe from All
+            Delete All Alerts
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Unsubscribe from All Alerts?</AlertDialogTitle>
+            <AlertDialogTitle>Delete All Alerts?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will deactivate all of your alerts and stop all email notifications.
-              You can reactivate individual alerts later if needed.
+              This will permanently delete all of your alerts and stop all email notifications.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -103,7 +105,7 @@ export function UnsubscribeButton({ token }: UnsubscribeButtonProps) {
               disabled={isUnsubscribing}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isUnsubscribing ? "Unsubscribing..." : "Unsubscribe"}
+              {isUnsubscribing ? "Deleting..." : "Delete All"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

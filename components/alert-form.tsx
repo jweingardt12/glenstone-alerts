@@ -9,6 +9,7 @@ import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AlertModal } from "@/components/alert-modal";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useOpenPanel } from "@openpanel/nextjs";
 import {
   Form,
   FormControl,
@@ -103,6 +104,7 @@ interface AlertFormProps {
 }
 
 export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, onClose, showTrigger = false }: AlertFormProps) {
+  const { track } = useOpenPanel();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -124,18 +126,21 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
   // Support controlled or uncontrolled mode
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
   const setIsOpen = onClose !== undefined
-    ? (open: boolean) => { if (!open) onClose(); }
+    ? (open: boolean) => { 
+        if (!open) onClose(); 
+      }
     : setInternalIsOpen;
 
   // Force calendar re-render after sheet animation
   useEffect(() => {
     if (isOpen) {
+      track("alert_modal_opened");
       const timer = setTimeout(() => {
         setCalendarKey((prev) => prev + 1);
       }, 300); // Wait for sheet animation to complete
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, track]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -209,6 +214,13 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
 
       // New alert created successfully
       const { alert: createdAlert } = data;
+
+      // Track alert creation
+      track("alert_created", {
+        quantity: values.quantity,
+        dateCount: values.dates.length,
+        hasPreferredTimes: (values.preferredTimes?.length || 0) > 0,
+      });
 
       if (onSuccess) {
         onSuccess(createdAlert);

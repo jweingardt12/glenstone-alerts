@@ -14,8 +14,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { ExternalLink, RotateCw } from "lucide-react";
 import type { CalendarDate, CalendarResponse, EventSession } from "@/lib/types";
 import { generateBookingUrl } from "@/lib/glenstone-api";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 export default function Home() {
+  const { track } = useOpenPanel();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [sessions, setSessions] = useState<EventSession[]>([]);
   const [calendarData, setCalendarData] = useState<CalendarDate[]>([]);
@@ -33,9 +35,12 @@ export default function Home() {
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [prefilledDate, setPrefilledDate] = useState<string | null>(null);
 
-  const fetchAvailability = useCallback(async () => {
+  const fetchAvailability = useCallback(async (isManualRefresh = false) => {
     try {
       setLoading(true);
+      if (isManualRefresh) {
+        track("availability_refreshed");
+      }
       const response = await fetch(`/api/availability?quantity=${quantity}`);
       if (!response.ok) throw new Error("Failed to fetch availability");
       const data: CalendarResponse = await response.json();
@@ -45,7 +50,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [quantity]);
+  }, [quantity, track]);
 
   useEffect(() => {
     void fetchAvailability();
@@ -55,6 +60,10 @@ export default function Home() {
     setSelectedDate(date);
     setSessions(daySessions);
     setShowTimeSlotModal(true);
+    track("time_slot_viewed", {
+      date,
+      availableSlots: daySessions.length,
+    });
   };
 
   const handleCreateAlert = (date: string) => {
@@ -69,6 +78,10 @@ export default function Home() {
 
   const handleBooking = () => {
     if (selectedDate) {
+      track("booking_link_clicked", {
+        date: selectedDate,
+        quantity,
+      });
       window.open(generateBookingUrl(selectedDate, quantity), "_blank");
     }
   };
@@ -140,7 +153,7 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <AlertForm showTrigger={true} />
                 <Button
-                  onClick={fetchAvailability}
+                  onClick={() => fetchAvailability(true)}
                   variant="ghost"
                   size="sm"
                   disabled={loading}
