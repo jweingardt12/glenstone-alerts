@@ -292,7 +292,7 @@ export default function Home() {
                   <div>
                     <h3 className="font-normal text-foreground mb-2">How does this work?</h3>
                     <p className="text-muted-foreground font-light leading-relaxed">
-                      This tool checks Glenstone&apos;s ticket availability every 30 minutes. Create an alert by selecting your preferred dates, and we&apos;ll email you when tickets become available. You'll still need to check out on the Glenstone site - all this does is notify you when tickets become available.
+                      This tool checks Glenstone&apos;s ticket availability every 30 minutes. Create an alert by selecting your preferred dates, and we&apos;ll email you when tickets become available. You&apos;ll still need to check out on the Glenstone site - all this does is notify you when tickets become available.
                     </p>
                   </div>
 
