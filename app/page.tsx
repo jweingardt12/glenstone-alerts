@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AlertForm } from "@/components/alert-form";
 import { AvailabilityList } from "@/components/availability-list";
 import { AvailabilityCalendar } from "@/components/availability-calendar";
@@ -25,7 +25,7 @@ export default function Home() {
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [prefilledDate, setPrefilledDate] = useState<string | null>(null);
 
-  const fetchAvailability = async () => {
+  const fetchAvailability = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/availability?quantity=${quantity}`);
@@ -37,12 +37,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [quantity]);
 
   useEffect(() => {
-    fetchAvailability();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quantity]);
+    void fetchAvailability();
+  }, [fetchAvailability]);
 
   const handleDaySelect = (date: string, daySessions: EventSession[]) => {
     setSelectedDate(date);
