@@ -69,9 +69,30 @@ export async function POST(request: NextRequest) {
     });
 
     if (duplicateAlert) {
+      // Send management email so user can access their alerts
+      const managementToken = await db.alerts.getOrCreateManagementToken(body.email);
+
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-confirmation-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({
+            type: 'management',
+            email: body.email,
+            token: managementToken,
+            alertsCount: existingAlerts.length
+          }),
+        });
+      } catch (error) {
+        console.error("Error sending management email:", error);
+      }
+
       return NextResponse.json(
         {
-          error: "You already have an identical alert set up for these dates. Check your email for a link to manage your alerts.",
+          error: "You already have an identical alert set up for these dates. We've sent you an email with a link to manage your alerts.",
           existingAlert: true
         },
         { status: 400 }
