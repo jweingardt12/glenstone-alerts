@@ -349,6 +349,16 @@ export default function Home() {
                 GitHub
                 <ExternalLink className="h-3 w-3" />
               </a>
+              <span className="hidden sm:inline text-muted-foreground">•</span>
+              <a
+                href="https://dashboard.openpanel.dev/share/overview/d4VJHz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light"
+              >
+                Site stats
+                <ExternalLink className="h-3 w-3" />
+              </a>
             </div>
             <div className="text-center space-y-2">
               <p className="text-sm text-muted-foreground font-light inline-flex items-center justify-center gap-1 flex-wrap">
