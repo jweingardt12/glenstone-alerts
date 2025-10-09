@@ -43,7 +43,7 @@ export default async function ManageAlertsPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
-      <header className="relative w-full h-[160px] sm:h-[250px] md:h-[300px] overflow-hidden">
+      <header className="relative w-full h-[220px] sm:h-[250px] md:h-[300px] overflow-hidden">
         {/* Background Image */}
         <Image
           src="/glenstone.jpeg"
@@ -60,53 +60,44 @@ export default async function ManageAlertsPage({ params }: PageProps) {
         {/* Content */}
         <div className="relative h-full container mx-auto px-4 sm:px-6 py-4 sm:py-8">
           <div className="max-w-5xl mx-auto h-full">
-            {/* Theme toggle - absolute positioned on mobile, flex on desktop */}
-            <div className="absolute top-4 right-4 sm:hidden z-10">
+            {/* Theme toggle - absolute positioned */}
+            <div className="absolute top-4 right-4 z-10">
               <ThemeToggle />
             </div>
 
-            <div className="flex h-full flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-end h-full pb-4 sm:pb-12 pr-12 sm:pr-0">
-                <div className="flex items-center gap-3">
-                  <Link href="/" className="transition-transform hover:scale-105 shrink-0">
-                    <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28">
-                      <Image
-                        src="/logo.webp"
-                        alt="Glenstone Alerts Logo"
-                        fill
-                        priority
-                        sizes="(min-width: 640px) 80px, 64px"
-                        className="rounded-lg object-contain"
-                      />
-                    </div>
-                  </Link>
-                  <div className="space-y-1">
-                    <Link href="/">
-                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-wide text-white drop-shadow-lg hover:text-white/90 transition-colors">
-                        Glenstone Alerts
-                      </h1>
-                    </Link>
-                    <p className="text-xs sm:text-sm md:text-base text-white/90 font-light drop-shadow-md max-w-[36ch] md:max-w-none">
-                      <span className="md:block md:whitespace-nowrap">
-                        A simple tool to help reserve free timed entry passes for the
-                      </span>
-                      <span className="md:block">
-                        <a
-                          href="https://glenstone.org"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline hover:text-white transition-colors inline-flex items-center gap-1"
-                        >
-                          Glenstone Museum
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </span>
-                    </p>
+            <div className="flex h-full items-end justify-center pb-4 sm:pb-12 pt-12 sm:pt-0">
+              <div className="flex flex-col items-center gap-3 text-center">
+                <Link href="/" className="transition-transform hover:scale-105 shrink-0">
+                  <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28">
+                    <Image
+                      src="/logo.webp"
+                      alt="Glenstone Alerts Logo"
+                      fill
+                      priority
+                      sizes="(min-width: 640px) 80px, 64px"
+                      className="rounded-lg object-contain"
+                    />
                   </div>
+                </Link>
+                <div className="space-y-1">
+                  <Link href="/">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-wide text-white drop-shadow-lg hover:text-white/90 transition-colors">
+                      Glenstone Alerts
+                    </h1>
+                  </Link>
+                  <p className="text-xs sm:text-sm md:text-base text-white/90 font-light drop-shadow-md max-w-[36ch] md:max-w-none">
+                    A simple tool to help reserve free timed entry passes for the{" "}
+                    <a
+                      href="https://glenstone.org"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-white transition-colors inline-flex items-center gap-1"
+                    >
+                      Glenstone Museum
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </p>
                 </div>
-              </div>
-              <div className="hidden sm:flex items-center justify-end self-end sm:self-auto">
-                <ThemeToggle />
               </div>
             </div>
           </div>
