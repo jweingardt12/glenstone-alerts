@@ -110,6 +110,7 @@ export function AvailabilityCalendar({
 
   const handlePreviousMonth = () => {
     const prev = subMonths(currentMonth, 1);
+    const todayStart = startOfMonth(new Date());
     if (startOfMonth(prev).getTime() < todayStart.getTime()) return;
     setCurrentMonth(prev);
   };
