@@ -92,27 +92,33 @@ export default function Home() {
 
         {/* Content */}
         <div className="relative h-full container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-          <div className="flex items-start justify-between h-full">
-            <div className="flex items-end h-full pb-8 sm:pb-12">
-              <Link href="/" className="flex items-center gap-3 group">
-                <Image
-                  src="/logo.webp"
-                  alt="Glenstone Alerts Logo"
-                  width={80}
-                  height={80}
-                  className="rounded-lg transition-transform group-hover:scale-105"
-                />
-                <div className="space-y-1">
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-wide text-white drop-shadow-lg group-hover:text-white/90 transition-colors">
-                    Glenstone Alerts
-                  </h1>
-                  <p className="text-sm sm:text-base md:text-lg text-white/90 font-light drop-shadow-md">
-                    A simple tool to help reserve free timed entry passes for the Glenstone Museum
-                  </p>
+          <div className="max-w-5xl mx-auto h-full">
+            <div className="flex items-start justify-between h-full">
+              <div className="flex items-end h-full pb-8 sm:pb-12">
+                <div className="flex items-center gap-3">
+                  <Link href="/" className="transition-transform hover:scale-105">
+                    <Image
+                      src="/logo.webp"
+                      alt="Glenstone Alerts Logo"
+                      width={80}
+                      height={80}
+                      className="rounded-lg"
+                    />
+                  </Link>
+                  <div className="space-y-1">
+                    <Link href="/">
+                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-wide text-white drop-shadow-lg hover:text-white/90 transition-colors">
+                        Glenstone Alerts
+                      </h1>
+                    </Link>
+                    <p className="text-sm sm:text-base md:text-lg text-white/90 font-light drop-shadow-md">
+                      A simple tool to help reserve free timed entry passes for the <a href="https://glenstone.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors inline-flex items-center gap-1">Glenstone Museum<ExternalLink className="h-3 w-3" /></a>
+                    </p>
+                  </div>
                 </div>
-              </Link>
             </div>
             <ThemeToggle />
+          </div>
           </div>
         </div>
       </header>

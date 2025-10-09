@@ -41,7 +41,7 @@ export const metadata: Metadata = {
       "Monitor Glenstone ticket availability and get email notifications when dates open up.",
     images: [
       {
-        url: "/globe.svg",
+        url: "/og.jpg",
         width: 1200,
         height: 630,
         alt: "Glenstone Ticket Alerts",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     title: "Glenstone Ticket Alerts",
     description:
       "Monitor Glenstone ticket availability and get email notifications when dates open up.",
-    images: ["/globe.svg"],
+    images: ["/og.jpg"],
   },
   robots: {
     index: true,
