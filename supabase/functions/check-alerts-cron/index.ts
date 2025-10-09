@@ -154,13 +154,17 @@ serve(async (req) => {
     // Verify cron secret - check if it's present in the header
     const authHeader = req.headers.get("authorization");
     const cronSecret = Deno.env.get("CRON_SECRET");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    // Allow requests with valid CRON_SECRET or valid Supabase JWT
+    // Allow requests with valid CRON_SECRET, service role key, or valid Supabase JWT
     let isAuthorized = false;
 
     if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
       isAuthorized = true;
       console.log("Authorized via CRON_SECRET");
+    } else if (serviceRoleKey && authHeader === `Bearer ${serviceRoleKey}`) {
+      isAuthorized = true;
+      console.log("Authorized via SUPABASE_SERVICE_ROLE_KEY");
     } else if (authHeader && authHeader.startsWith("Bearer eyJ")) {
       // Looks like a JWT token, allow it (Supabase validates JWTs automatically)
       isAuthorized = true;
