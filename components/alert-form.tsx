@@ -157,6 +157,14 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
     message: "",
   });
 
+  // Verification flow states
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   // Support controlled or uncontrolled mode
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
   const setIsOpen = onClose !== undefined
@@ -200,16 +208,121 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
         form.setValue("dates", []);
       }
     } else if (!isOpen) {
-      // Reset form when modal closes
+      // Reset form and verification state when modal closes
       setSelectedDates([]);
       form.reset();
+      setNeedsVerification(false);
+      setVerificationSent(false);
+      setVerificationCode("");
+      setVerificationError(null);
+      setResendCooldown(0);
     }
   }, [prefilledDate, isOpen, form]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => {
+        setResendCooldown(resendCooldown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // Send verification code
+  const sendVerificationCode = async (email: string) => {
+    try {
+      setVerificationError(null);
+      const response = await fetch("/api/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send", email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send verification code");
+      }
+
+      if (data.needsVerification) {
+        setNeedsVerification(true);
+        setVerificationSent(true);
+        setResendCooldown(60); // 60 second cooldown
+      } else {
+        // User already has alerts, skip verification
+        setNeedsVerification(false);
+      }
+
+      return data.needsVerification;
+    } catch (error) {
+      console.error("Error sending verification code:", error);
+      setVerificationError(error instanceof Error ? error.message : "Failed to send verification code");
+      return false;
+    }
+  };
+
+  // Verify code
+  const verifyCode = async (email: string, code: string) => {
+    try {
+      setVerifyingCode(true);
+      setVerificationError(null);
+
+      const response = await fetch("/api/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "verify", email, code }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.verified) {
+        throw new Error(data.error || "Invalid verification code");
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error verifying code:", error);
+      setVerificationError(error instanceof Error ? error.message : "Invalid verification code");
+      return false;
+    } finally {
+      setVerifyingCode(false);
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
 
+      // Step 1: Check if email needs verification (only for new users)
+      if (!needsVerification && !verificationSent) {
+        const needsVerify = await sendVerificationCode(values.email);
+        if (needsVerify) {
+          // Stop here and show verification UI
+          setIsSubmitting(false);
+          return;
+        }
+        // If needsVerify is false, user already has alerts, continue to create alert
+      }
+
+      // Step 2: If verification was sent, verify the code
+      if (needsVerification && verificationSent) {
+        if (!verificationCode || verificationCode.length !== 4) {
+          setVerificationError("Please enter the 4-digit code");
+          setIsSubmitting(false);
+          return;
+        }
+
+        const verified = await verifyCode(values.email, verificationCode);
+        if (!verified) {
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Code verified, continue to create alert
+      }
+
+      // Step 3: Create the alert
       const response = await fetch("/api/alerts", {
         method: "POST",
         headers: {
@@ -318,6 +431,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                         placeholder="you@example.com"
                         type="email"
                         {...field}
+                        disabled={verificationSent}
                       />
                     </FormControl>
                     <FormDescription className="md:hidden">
@@ -327,6 +441,62 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                   </FormItem>
                 )}
               />
+
+              {/* Verification Code Input */}
+              {verificationSent && (
+                <div className="md:col-span-2 space-y-3">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-md">
+                    <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-2">
+                      Check your email
+                    </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      We&apos;ve sent a 4-digit verification code to{" "}
+                      <strong>{form.getValues("email")}</strong>. Enter it below to continue.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Verification Code</label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={4}
+                      placeholder="0000"
+                      value={verificationCode}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        setVerificationCode(value);
+                        setVerificationError(null);
+                      }}
+                      className="text-center text-2xl tracking-widest font-mono"
+                    />
+                    {verificationError && (
+                      <p className="text-sm text-red-600 dark:text-red-400">
+                        {verificationError}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between text-sm">
+                      <p className="text-muted-foreground">
+                        Code expires in 10 minutes
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={resendCooldown > 0}
+                        onClick={async () => {
+                          const email = form.getValues("email");
+                          if (email) {
+                            await sendVerificationCode(email);
+                          }
+                        }}
+                      >
+                        {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : "Resend code"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <FormField
                 control={form.control}
@@ -537,8 +707,16 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
             </div>
 
             <div className="border-t p-6 bg-background flex-shrink-0">
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Creating Alert..." : "Create Alert"}
+              <Button type="submit" className="w-full" disabled={isSubmitting || verifyingCode}>
+                {isSubmitting
+                  ? verificationSent && !verifyingCode
+                    ? "Creating Alert..."
+                    : "Sending Code..."
+                  : verifyingCode
+                  ? "Verifying..."
+                  : verificationSent
+                  ? "Verify & Create Alert"
+                  : "Create Alert"}
               </Button>
             </div>
           </form>

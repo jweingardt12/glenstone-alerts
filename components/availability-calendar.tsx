@@ -25,6 +25,7 @@ export function AvailabilityCalendar({
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [weatherData, setWeatherData] = useState<WeatherResponse>({});
   const [loadingWeather, setLoadingWeather] = useState(false);
+  const [direction, setDirection] = useState<'left' | 'right' | null>(null);
 
   // Create a map of dates to availability data for quick lookup
   const availabilityMap = useMemo(() => {
@@ -112,11 +113,15 @@ export function AvailabilityCalendar({
     const prev = subMonths(currentMonth, 1);
     const todayStart = startOfMonth(new Date());
     if (startOfMonth(prev).getTime() < todayStart.getTime()) return;
+    setDirection('left');
     setCurrentMonth(prev);
+    setTimeout(() => setDirection(null), 300);
   };
 
   const handleNextMonth = () => {
+    setDirection('right');
     setCurrentMonth(addMonths(currentMonth, 1));
+    setTimeout(() => setDirection(null), 300);
   };
 
   return (
@@ -148,7 +153,11 @@ export function AvailabilityCalendar({
       </div>
 
       {/* Calendar Grid */}
-      <div className="border rounded-lg overflow-hidden bg-card">
+      <div className={cn(
+        "border rounded-lg overflow-hidden bg-card transition-all duration-300",
+        direction === 'right' && "animate-slide-in-right",
+        direction === 'left' && "animate-slide-in-left"
+      )}>
         {/* Weekday Headers */}
         <div className="grid grid-cols-7 bg-muted border-b">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (

@@ -43,7 +43,7 @@ export default async function ManageAlertsPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
-      <header className="relative w-full h-[200px] sm:h-[250px] md:h-[300px] overflow-hidden">
+      <header className="relative w-full h-[160px] sm:h-[250px] md:h-[300px] overflow-hidden">
         {/* Background Image */}
         <Image
           src="/glenstone.jpeg"
@@ -58,19 +58,24 @@ export default async function ManageAlertsPage({ params }: PageProps) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60 dark:from-black/70 dark:via-black/50 dark:to-black/70 transition-colors duration-300" />
 
         {/* Content */}
-        <div className="relative h-full container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="relative h-full container mx-auto px-4 sm:px-6 py-4 sm:py-8">
           <div className="max-w-5xl mx-auto h-full">
-            <div className="flex items-start justify-between h-full">
-              <div className="flex items-end h-full pb-8 sm:pb-12">
+            {/* Theme toggle - absolute positioned on mobile, flex on desktop */}
+            <div className="absolute top-4 right-4 sm:hidden z-10">
+              <ThemeToggle />
+            </div>
+
+            <div className="flex h-full flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-end h-full pb-4 sm:pb-12 pr-12 sm:pr-0">
                 <div className="flex items-center gap-3">
-                  <Link href="/" className="transition-transform hover:scale-105">
-                    <div className="relative w-24 h-24 sm:w-20 sm:h-20">
+                  <Link href="/" className="transition-transform hover:scale-105 shrink-0">
+                    <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28">
                       <Image
                         src="/logo.webp"
                         alt="Glenstone Alerts Logo"
                         fill
                         priority
-                        sizes="(min-width: 640px) 80px, 96px"
+                        sizes="(min-width: 640px) 80px, 64px"
                         className="rounded-lg object-contain"
                       />
                     </div>
@@ -81,13 +86,28 @@ export default async function ManageAlertsPage({ params }: PageProps) {
                         Glenstone Alerts
                       </h1>
                     </Link>
-                    <p className="text-xs sm:text-sm md:text-base text-white/90 font-light drop-shadow-md max-w-[30ch]">
-                      A simple tool to help reserve free timed entry passes for the <a href="https://glenstone.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors inline-flex items-center gap-1">Glenstone Museum<ExternalLink className="h-3 w-3" /></a>
+                    <p className="text-xs sm:text-sm md:text-base text-white/90 font-light drop-shadow-md max-w-[36ch] md:max-w-none">
+                      <span className="md:block md:whitespace-nowrap">
+                        A simple tool to help reserve free timed entry passes for the
+                      </span>
+                      <span className="md:block">
+                        <a
+                          href="https://glenstone.org"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-white transition-colors inline-flex items-center gap-1"
+                        >
+                          Glenstone Museum
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </span>
                     </p>
                   </div>
                 </div>
               </div>
-              <ThemeToggle />
+              <div className="hidden sm:flex items-center justify-end self-end sm:self-auto">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         </div>
@@ -194,6 +214,17 @@ export default async function ManageAlertsPage({ params }: PageProps) {
       <footer className="border-t mt-24">
         <div className="container mx-auto px-4 sm:px-6 py-8">
           <div className="max-w-5xl mx-auto space-y-4">
+            <p className="text-muted-foreground font-light text-center text-sm">
+              Made with 🎨 by{" "}
+              <a
+                href="https://jwe.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                <span className="font-semibold">Jason</span> in Potomac, MD
+              </a>
+            </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
               <a
                 href="https://github.com/jweingardt12/glenstone-alerts"
@@ -206,12 +237,12 @@ export default async function ManageAlertsPage({ params }: PageProps) {
               </a>
               <span className="hidden sm:inline text-muted-foreground">•</span>
               <a
-                href="https://jwe.in"
+                href="https://dashboard.openpanel.dev/share/overview/d4VJHz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light"
               >
-                jwe.in
+                Site stats
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
@@ -236,7 +267,7 @@ export default async function ManageAlertsPage({ params }: PageProps) {
                 </a>
               </p>
               <p className="text-sm text-muted-foreground font-light">
-                This project is not affiliated with Glenstone Museum
+                Not affiliated with Glenstone Museum
               </p>
             </div>
           </div>

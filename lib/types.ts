@@ -174,3 +174,14 @@ export interface CurrentWeather {
   windSpeed: number;
   observationTime: string;
 }
+
+// Email verification types
+export interface EmailVerification {
+  id: string;
+  email: string;
+  code: string;
+  verified: boolean;
+  createdAt: string;
+  expiresAt: string;
+  attempts: number;
+}

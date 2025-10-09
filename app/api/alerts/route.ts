@@ -56,6 +56,31 @@ export async function POST(request: NextRequest) {
     // Check if user already has alerts
     const existingAlerts = await db.alerts.getByEmail(body.email);
 
+    // For new users (no existing alerts), require email verification
+    if (existingAlerts.length === 0) {
+      // Check if email has been verified
+      const { data: verifications, error: verifyError } = await db.emailVerifications.getVerifiedByEmail(body.email);
+
+      if (verifyError || !verifications || verifications.length === 0) {
+        return NextResponse.json(
+          { error: "Email verification required. Please verify your email first." },
+          { status: 403 }
+        );
+      }
+
+      // Check if verification is still valid (within 1 hour)
+      const latestVerification = verifications[0];
+      const verifiedAt = new Date(latestVerification.createdAt);
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+      if (verifiedAt < oneHourAgo) {
+        return NextResponse.json(
+          { error: "Email verification expired. Please verify again." },
+          { status: 403 }
+        );
+      }
+    }
+
     // Check for duplicate alert (same email + same dates)
     const sortedNewDates = [...body.dates].sort().join(',');
     const sortedNewTimes = body.preferredTimes ? [...body.preferredTimes].sort().join(',') : '';

@@ -1,5 +1,5 @@
 // Supabase database implementation for alerts
-import type { Alert, CreateAlertRequest, CronLog } from "./types";
+import type { Alert, CreateAlertRequest, CronLog, EmailVerification } from "./types";
 import { generateManagementToken } from "./token";
 import { getSupabaseClient } from "./supabase";
 
@@ -498,6 +498,178 @@ export const db = {
 
       console.log("Deleted alerts:", data);
       return data?.length || 0;
+    },
+  },
+
+  emailVerifications: {
+    /**
+     * Create a new email verification record
+     */
+    create: async (email: string, code: string): Promise<EmailVerification> => {
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes from now
+
+      const { data, error } = await supabase()
+        .from("email_verifications")
+        .insert({
+          email,
+          code,
+          expires_at: expiresAt.toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating email verification:", error);
+        throw new Error(`Failed to create email verification: ${error.message}`);
+      }
+
+      return {
+        id: data.id,
+        email: data.email,
+        code: data.code,
+        verified: data.verified,
+        createdAt: data.created_at,
+        expiresAt: data.expires_at,
+        attempts: data.attempts,
+      };
+    },
+
+    /**
+     * Get verification by email and code
+     */
+    getByEmailAndCode: async (email: string, code: string): Promise<EmailVerification | null> => {
+      const { data, error } = await supabase()
+        .from("email_verifications")
+        .select("*")
+        .eq("email", email)
+        .eq("code", code)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") {
+          // No rows returned
+          return null;
+        }
+        console.error("Error fetching email verification:", error);
+        return null;
+      }
+
+      return {
+        id: data.id,
+        email: data.email,
+        code: data.code,
+        verified: data.verified,
+        createdAt: data.created_at,
+        expiresAt: data.expires_at,
+        attempts: data.attempts,
+      };
+    },
+
+    /**
+     * Get recent verifications by email (for rate limiting)
+     */
+    getRecentByEmail: async (email: string): Promise<EmailVerification[]> => {
+      const oneMinuteAgo = new Date(Date.now() - 60000);
+
+      const { data, error } = await supabase()
+        .from("email_verifications")
+        .select("*")
+        .eq("email", email)
+        .gte("created_at", oneMinuteAgo.toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching recent verifications:", error);
+        return [];
+      }
+
+      return (data || []).map((row) => ({
+        id: row.id,
+        email: row.email,
+        code: row.code,
+        verified: row.verified,
+        createdAt: row.created_at,
+        expiresAt: row.expires_at,
+        attempts: row.attempts,
+      }));
+    },
+
+    /**
+     * Get verified records by email
+     */
+    getVerifiedByEmail: async (email: string): Promise<{ data: EmailVerification[] | null; error: Error | null }> => {
+      try {
+        const { data, error } = await supabase()
+          .from("email_verifications")
+          .select("*")
+          .eq("email", email)
+          .eq("verified", true)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching verified records:", error);
+          return { data: null, error: new Error(error.message) };
+        }
+
+        const verifications = (data || []).map((row) => ({
+          id: row.id,
+          email: row.email,
+          code: row.code,
+          verified: row.verified,
+          createdAt: row.created_at,
+          expiresAt: row.expires_at,
+          attempts: row.attempts,
+        }));
+
+        return { data: verifications, error: null };
+      } catch (err) {
+        console.error("Error in getVerifiedByEmail:", err);
+        return { data: null, error: err instanceof Error ? err : new Error("Unknown error") };
+      }
+    },
+
+    /**
+     * Mark verification as verified
+     */
+    markAsVerified: async (id: string): Promise<void> => {
+      const { error } = await supabase()
+        .from("email_verifications")
+        .update({ verified: true })
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error marking verification as verified:", error);
+        throw new Error(`Failed to mark verification as verified: ${error.message}`);
+      }
+    },
+
+    /**
+     * Increment attempts counter
+     */
+    incrementAttempts: async (id: string): Promise<void> => {
+      const { error } = await supabase()
+        .rpc("increment_verification_attempts", { verification_id: id });
+
+      if (error) {
+        console.error("Error incrementing verification attempts:", error);
+      }
+    },
+
+    /**
+     * Clean up expired verifications
+     */
+    cleanupExpired: async (): Promise<void> => {
+      const { error } = await supabase()
+        .from("email_verifications")
+        .delete()
+        .lt("expires_at", new Date().toISOString());
+
+      if (error) {
+        console.error("Error cleaning up expired verifications:", error);
+      }
     },
   },
 };

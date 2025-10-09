@@ -170,7 +170,7 @@ export default function Home() {
                     </Link>
                     <p className="text-xs sm:text-sm md:text-base text-white/90 font-light drop-shadow-md max-w-[36ch] md:max-w-none">
                       <span className="md:block md:whitespace-nowrap">
-                        A simple tool to help reserve free timed entry passes for the
+                        A simple tool to help reserve free timed entry passes for the{" "}
                       </span>
                       <span className="md:block">
                         <a
@@ -263,24 +263,6 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* About Section */}
-            <Card className="mt-6 bg-muted/50">
-              <CardContent className="p-6 space-y-3 text-sm text-muted-foreground leading-relaxed">
-                <p className="font-light">
-                  Glenstone offers <strong className="font-normal">free admission</strong> with advance reservation. Timed entry tickets are released monthly.
-                </p>
-                <a
-                  href="https://glenstone.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 hover:underline font-light text-foreground"
-                >
-                  Visit Glenstone.org
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </CardContent>
-            </Card>
-
             {/* FAQ Section */}
             <Card className="mt-6">
               <CardContent className="p-6 space-y-6">
@@ -327,19 +309,18 @@ export default function Home() {
       <footer className="border-t mt-24">
         <div className="container mx-auto px-4 sm:px-6 py-8">
           <div className="max-w-5xl mx-auto space-y-4">
+            <p className="text-muted-foreground font-light text-center text-sm">
+              Made with {artEmoji} by{" "}
+              <a
+                href="https://jwe.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                <span className="font-semibold">Jason</span> in Potomac, MD
+              </a>
+            </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
-              <p className="text-muted-foreground font-light">
-                Made with {artEmoji} by{" "}
-                <a
-                  href="https://jwe.in"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
-                >
-                  <span className="font-semibold">Jason</span> in Potomac, MD
-                </a>
-              </p>
-              <span className="hidden sm:inline text-muted-foreground">•</span>
               <a
                 href="https://github.com/jweingardt12/glenstone-alerts"
                 target="_blank"
