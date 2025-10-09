@@ -355,8 +355,9 @@ serve(async (req) => {
         );
       }
 
-      // Get base URL from request headers or use default
-      const baseUrl = req.headers.get("origin") || "http://localhost:3000";
+      // Get base URL from request headers or environment
+      const originHeader = req.headers.get("origin");
+      const baseUrl = originHeader || Deno.env.get("SITE_URL") || Deno.env.get("NEXT_PUBLIC_SITE_URL") || "https://glenstone-tracker.vercel.app";
 
       recipientEmail = body.email;
       subject = "📋 Manage Your Glenstone Alerts";
