@@ -81,13 +81,11 @@ export async function POST(request: NextRequest) {
     // Create alert
     let alert = await db.alerts.create(body);
 
-    // If user already has other alerts, assign the same management token
-    if (existingAlerts.length > 0) {
-      const managementToken = await db.alerts.getOrCreateManagementToken(body.email);
-      const updatedAlert = await db.alerts.update(alert.id, { managementToken });
-      if (updatedAlert) {
-        alert = updatedAlert;
-      }
+    // Always assign a management token (get existing or create new)
+    const managementToken = await db.alerts.getOrCreateManagementToken(body.email);
+    const updatedAlert = await db.alerts.update(alert.id, { managementToken });
+    if (updatedAlert) {
+      alert = updatedAlert;
     }
 
     // Send confirmation email via edge function
