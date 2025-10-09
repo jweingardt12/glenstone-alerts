@@ -45,8 +45,7 @@ const TIME_SLOTS: TimeSlot[] = [
   "13:00", "13:15", "13:30", "13:45",
   "14:00", "14:15", "14:30", "14:45",
   "15:00", "15:15", "15:30", "15:45",
-  "16:00", "16:15", "16:30", "16:45",
-  "17:00"
+  "16:00", "16:15"
 ];
 
 // Helper to format time slots for display
@@ -89,8 +88,7 @@ const formSchema = z.object({
     "13:00", "13:15", "13:30", "13:45",
     "14:00", "14:15", "14:30", "14:45",
     "15:00", "15:15", "15:30", "15:45",
-    "16:00", "16:15", "16:30", "16:45",
-    "17:00"
+    "16:00", "16:15"
   ] as const)).optional(),
   quantity: z.number().min(1).max(10),
 });
@@ -347,7 +345,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                             checkDate.setHours(0, 0, 0, 0);
                             return checkDate < today;
                           }}
-                          className="rounded-md border w-full [&_.rdp]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-caption]:flex [&_.rdp-caption]:justify-between [&_.rdp-caption]:items-center [&_.rdp-caption]:px-2 [&_.rdp-nav]:flex [&_.rdp-nav]:space-x-1 [&_.rdp-head]:w-full [&_.rdp-head_row]:grid [&_.rdp-head_row]:grid-cols-7 [&_.rdp-head_row]:text-center [&_.rdp-tbody]:w-full [&_.rdp-tbody]:space-y-1 [&_.rdp-row]:grid [&_.rdp-row]:grid-cols-7 [&_.rdp-row]:gap-1 [&_.rdp-cell]:relative [&_.rdp-day]:h-12 [&_.rdp-day]:w-full [&_.rdp-day]:aspect-square [&_.rdp-day_button]:h-full [&_.rdp-day_button]:w-full [&_.rdp-day_button]:rounded-md"
+                          className="rounded-md border w-full [&_.rdp]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-caption]:flex [&_.rdp-caption]:justify-between [&_.rdp-caption]:items-center [&_.rdp-caption]:px-2 [&_.rdp-nav]:flex [&_.rdp-nav]:space-x-1 [&_.rdp-head]:w-full [&_.rdp-head_row]:grid [&_.rdp-head_row]:grid-cols-7 [&_.rdp-head_row]:text-center [&_.rdp-tbody]:w-full [&_.rdp-tbody]:space-y-1 [&_.rdp-row]:grid [&_.rdp-row]:grid-cols-7 [&_.rdp-row]:gap-1 [&_.rdp-cell]:relative [&_.rdp-day]:h-[var(--cell-size)] [&_.rdp-day]:w-[var(--cell-size)] [&_.rdp-day]:aspect-auto [&_.rdp-day_button]:h-full [&_.rdp-day_button]:w-full [&_.rdp-day_button]:rounded-md"
                         />
                       )}
                       {selectedDates.length > 0 && (

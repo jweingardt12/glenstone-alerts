@@ -95,7 +95,7 @@ export interface EventResponse {
 // Alert types
 export type TimeOfDay = "morning" | "midday" | "afternoon" | "any";
 
-// Specific time slots that users can select (15-minute increments from 10:00 AM to 5:00 PM)
+// Specific time slots that users can select (15-minute increments from 10:00 AM to 4:15 PM)
 export type TimeSlot =
   | "10:00" | "10:15" | "10:30" | "10:45"
   | "11:00" | "11:15" | "11:30" | "11:45"
@@ -103,8 +103,7 @@ export type TimeSlot =
   | "13:00" | "13:15" | "13:30" | "13:45"
   | "14:00" | "14:15" | "14:30" | "14:45"
   | "15:00" | "15:15" | "15:30" | "15:45"
-  | "16:00" | "16:15" | "16:30" | "16:45"
-  | "17:00";
+  | "16:00" | "16:15";
 
 export interface Alert {
   id: string;

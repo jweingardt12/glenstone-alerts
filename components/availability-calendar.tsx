@@ -227,16 +227,14 @@ export function AvailabilityCalendar({
                           ~{dayData.availability.capacity - dayData.availability.used_capacity} slots
                         </div>
                         {weather && (
-                          <div className="text-xs mt-1 leading-tight h-[18px]">
-                            <div className="flex items-center gap-1 text-muted-foreground min-w-0 w-full">
+                          <div className="text-xs mt-1 leading-tight">
+                            <div className="flex items-center gap-1 text-muted-foreground">
                               <span className="shrink-0">{getWeatherIcon(weather.conditionCode)}</span>
-                              <span className="truncate">
-                                {`${Math.round(weather.temperatureMax)}°/${Math.round(weather.temperatureMin)}°`}
-                                {weather.precipitationChance > 0
-                                  ? ` • ${Math.round(weather.precipitationChance * 100)}% rain`
-                                  : ""}
-                              </span>
+                              <span>{`${Math.round(weather.temperatureMax)}°/${Math.round(weather.temperatureMin)}°`}</span>
                             </div>
+                            {weather.precipitationChance > 0 && (
+                              <div className="text-muted-foreground">{`${Math.round(weather.precipitationChance * 100)}% rain`}</div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -247,16 +245,14 @@ export function AvailabilityCalendar({
                           Sold Out
                         </div>
                         {weather && (
-                          <div className="text-xs mt-1 leading-tight h-[18px]">
-                            <div className="flex items-center gap-1 text-muted-foreground min-w-0 w-full">
+                          <div className="text-xs mt-1 leading-tight">
+                            <div className="flex items-center gap-1 text-muted-foreground">
                               <span className="shrink-0">{getWeatherIcon(weather.conditionCode)}</span>
-                              <span className="truncate">
-                                {`${Math.round(weather.temperatureMax)}°/${Math.round(weather.temperatureMin)}°`}
-                                {weather.precipitationChance > 0
-                                  ? ` • ${Math.round(weather.precipitationChance * 100)}% rain`
-                                  : ""}
-                              </span>
+                              <span>{`${Math.round(weather.temperatureMax)}°/${Math.round(weather.temperatureMin)}°`}</span>
                             </div>
+                            {weather.precipitationChance > 0 && (
+                              <div className="text-muted-foreground">{`${Math.round(weather.precipitationChance * 100)}% rain`}</div>
+                            )}
                           </div>
                         )}
                       </div>

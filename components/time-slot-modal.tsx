@@ -49,8 +49,17 @@ export function TimeSlotModal({
 
   if (!date) return null;
 
-  const availableSessions = sessions.filter((s) => !s.sold_out);
-  const unavailableSessions = sessions.filter((s) => s.sold_out);
+  // Only show sessions up to and including 4:15 PM
+  const isBeforeCutoff = (iso: string) => {
+    const d = parseISO(iso);
+    const h = d.getHours();
+    const m = d.getMinutes();
+    return h < 16 || (h === 16 && m <= 15);
+  };
+
+  const visibleSessions = sessions.filter((s) => isBeforeCutoff(s.start_datetime));
+  const availableSessions = visibleSessions.filter((s) => !s.sold_out);
+  const unavailableSessions = visibleSessions.filter((s) => s.sold_out);
   const dateObj = parseISO(date);
 
   const handleOpenAlert = () => {
@@ -122,7 +131,7 @@ export function TimeSlotModal({
                 {format(dateObj, "MMMM d, yyyy")}
               </SheetTitle>
               <SheetDescription className="text-sm font-light">
-                {format(dateObj, "EEEE")} • {availableSessions.length} of {sessions.length} slots available
+                {format(dateObj, "EEEE")} • {availableSessions.length} of {visibleSessions.length} slots available
               </SheetDescription>
             </SheetHeader>
 

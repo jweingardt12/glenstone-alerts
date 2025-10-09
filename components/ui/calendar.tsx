@@ -130,7 +130,11 @@ function Calendar({
             <div
               data-slot="calendar"
               ref={rootRef}
-              className={cn(className)}
+              className={cn(
+                // Ensure the calendar scales on small screens
+                "w-full max-w-full overflow-x-hidden [--cell-size:clamp(1.6rem,8vw,2.25rem)] sm:[--cell-size:2.5rem] md:[--cell-size:2.75rem]",
+                className
+              )}
               {...props}
             />
           )

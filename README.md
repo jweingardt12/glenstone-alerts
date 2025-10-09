@@ -35,7 +35,6 @@ A simple tool to get notified when free timed-entry [Glenstone Museum](https://g
 
 This is an unofficial community tool and is not affiliated with or endorsed by Glenstone Museum.
 
-- Data comes from Glenstone’s public information.
 - All reservations happen directly on [glenstone.org](https://glenstone.org).
 - For official information, visit [glenstone.org](https://glenstone.org).
 
