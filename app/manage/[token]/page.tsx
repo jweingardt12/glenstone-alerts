@@ -64,13 +64,16 @@ export default async function ManageAlertsPage({ params }: PageProps) {
               <div className="flex items-end h-full pb-8 sm:pb-12">
                 <div className="flex items-center gap-3">
                   <Link href="/" className="transition-transform hover:scale-105">
-                    <Image
-                      src="/logo.webp"
-                      alt="Glenstone Alerts Logo"
-                      width={80}
-                      height={80}
-                      className="rounded-lg"
-                    />
+                    <div className="relative w-24 h-24 sm:w-20 sm:h-20">
+                      <Image
+                        src="/logo.webp"
+                        alt="Glenstone Alerts Logo"
+                        fill
+                        priority
+                        sizes="(min-width: 640px) 80px, 96px"
+                        className="rounded-lg object-contain"
+                      />
+                    </div>
                   </Link>
                   <div className="space-y-1">
                     <Link href="/">
@@ -78,7 +81,7 @@ export default async function ManageAlertsPage({ params }: PageProps) {
                         Glenstone Alerts
                       </h1>
                     </Link>
-                    <p className="text-sm sm:text-base md:text-lg text-white/90 font-light drop-shadow-md">
+                    <p className="text-xs sm:text-sm md:text-base text-white/90 font-light drop-shadow-md max-w-[30ch]">
                       A simple tool to help reserve free timed entry passes for the <a href="https://glenstone.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors inline-flex items-center gap-1">Glenstone Museum<ExternalLink className="h-3 w-3" /></a>
                     </p>
                   </div>
@@ -233,7 +236,7 @@ export default async function ManageAlertsPage({ params }: PageProps) {
                 </a>
               </p>
               <p className="text-sm text-muted-foreground font-light">
-                Unofficial tool • Not affiliated with Glenstone Museum
+                This project is not affiliated with Glenstone Museum
               </p>
             </div>
           </div>

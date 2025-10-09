@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 /**
  * Database Migration Script
  * Runs the initial Supabase schema migration
@@ -46,7 +48,7 @@ async function runMigration() {
     // Execute the migration SQL
     console.log('⚙️  Executing migration...');
 
-    const { data, error } = await supabase.rpc('exec_sql', {
+    const { error } = await supabase.rpc('exec_sql', {
       sql: migrationSQL
     });
 
@@ -115,6 +117,7 @@ async function executeSQLDirectly(sql) {
 
       console.log(`   ✓ Statement ${i + 1}/${statements.length} executed`);
     } catch (error) {
+      console.error(error);
       throw new Error(
         'Unable to execute SQL via API. Please run the migration manually in the Supabase SQL Editor.'
       );
@@ -129,7 +132,7 @@ async function verifyMigration() {
 
   try {
     // Check if alerts table exists
-    const { data: tables, error: tableError } = await supabase
+    const { error: tableError } = await supabase
       .from('alerts')
       .select('*')
       .limit(0);

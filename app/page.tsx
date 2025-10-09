@@ -12,9 +12,15 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 // import { format, parseISO } from "date-fns";
 import { ExternalLink, RotateCw } from "lucide-react";
-import type { CalendarDate, CalendarResponse, EventSession } from "@/lib/types";
+import type {
+  CalendarDate,
+  CalendarResponse,
+  EventSession,
+} from "@/lib/types";
 import { generateBookingUrl } from "@/lib/glenstone-api";
 import { useOpenPanel } from "@openpanel/nextjs";
+
+// Removed header weather display and related helpers
 
 export default function Home() {
   const { track } = useOpenPanel();
@@ -24,16 +30,37 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const quantity = 2;
 
-  // Rotate through art-related emojis
-  const artEmoji = useMemo(() => {
-    const emojis = ['🎨', '🖼️', '🎭', '🗿', '🏛️'];
-    return emojis[Math.floor(Math.random() * emojis.length)];
-  }, []);
+  // Cycle through art-related emojis in the footer
+  const emojis = useMemo(
+    () => [
+      // Art + creative
+      '🎨', '🖼️', '🖌️', '🖍️', '✏️', '🖋️', '✒️', '🧑‍🎨',
+      '🎭', '🎬', '📷', '🎥', '🎞️', '🏺', '🗿', '🏛️', '❤️'
+    ],
+    []
+  );
+  const [emojiIndex, setEmojiIndex] = useState(0);
+  useEffect(() => {
+    const getRandomInterval = () => Math.random() * 1500 + 800; // Random interval between 800-2300ms
+    let timeoutId: NodeJS.Timeout;
+
+    const scheduleNext = () => {
+      timeoutId = setTimeout(() => {
+        setEmojiIndex((i) => (i + 1) % emojis.length);
+        scheduleNext();
+      }, getRandomInterval());
+    };
+
+    scheduleNext();
+    return () => clearTimeout(timeoutId);
+  }, [emojis.length]);
+  const artEmoji = emojis[emojiIndex];
 
   // Modal states
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
   const [showAlertForm, setShowAlertForm] = useState(false);
   const [prefilledDate, setPrefilledDate] = useState<string | null>(null);
+  // Weather badge removed from header
 
   const fetchAvailability = useCallback(async (isManualRefresh = false) => {
     try {
@@ -55,6 +82,8 @@ export default function Home() {
   useEffect(() => {
     void fetchAvailability();
   }, [fetchAvailability]);
+
+  // Removed current weather polling
 
   const handleDaySelect = (date: string, daySessions: EventSession[]) => {
     setSelectedDate(date);
@@ -106,17 +135,20 @@ export default function Home() {
         {/* Content */}
         <div className="relative h-full container mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <div className="max-w-5xl mx-auto h-full">
-            <div className="flex items-start justify-between h-full">
-              <div className="flex items-end h-full pb-8 sm:pb-12">
+            <div className="flex h-full flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-end h-full pb-6 sm:pb-12">
                 <div className="flex items-center gap-3">
-                  <Link href="/" className="transition-transform hover:scale-105">
-                    <Image
-                      src="/logo.webp"
-                      alt="Glenstone Alerts Logo"
-                      width={80}
-                      height={80}
-                      className="rounded-lg"
-                    />
+                  <Link href="/" className="transition-transform hover:scale-105 shrink-0">
+                    <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28">
+                      <Image
+                        src="/logo.webp"
+                        alt="Glenstone Alerts Logo"
+                        fill
+                        priority
+                        sizes="(min-width: 640px) 80px, 64px"
+                        className="rounded-lg object-contain"
+                      />
+                    </div>
                   </Link>
                   <div className="space-y-1">
                     <Link href="/">
@@ -124,16 +156,31 @@ export default function Home() {
                         Glenstone Alerts
                       </h1>
                     </Link>
-                    <p className="text-sm sm:text-base md:text-lg text-white/90 font-light drop-shadow-md">
-                      A simple tool to help reserve free timed entry passes for the <a href="https://glenstone.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-white transition-colors inline-flex items-center gap-1">Glenstone Museum<ExternalLink className="h-3 w-3" /></a>
+                    <p className="text-xs sm:text-sm md:text-base text-white/90 font-light drop-shadow-md max-w-[36ch] md:max-w-none">
+                      <span className="md:block md:whitespace-nowrap">
+                        A simple tool to help reserve free timed entry passes for the
+                      </span>
+                      <span className="md:block">
+                        <a
+                          href="https://glenstone.org"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-white transition-colors inline-flex items-center gap-1"
+                        >
+                          Glenstone Museum
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </span>
                     </p>
                   </div>
                 </div>
+              </div>
+              <div className="flex items-center justify-end self-end sm:self-auto">
+                <ThemeToggle />
+              </div>
             </div>
-            <ThemeToggle />
           </div>
           </div>
-        </div>
       </header>
 
       {/* Main Content */}
@@ -230,7 +277,7 @@ export default function Home() {
                   <div>
                     <h3 className="font-normal text-foreground mb-2">How does this work?</h3>
                     <p className="text-muted-foreground font-light leading-relaxed">
-                      This tool checks Glenstone&apos;s ticket availability hourly. Create an alert by selecting your preferred dates, and we&apos;ll email you when tickets become available.
+                      This tool checks Glenstone&apos;s ticket availability every 30 minutes. Create an alert by selecting your preferred dates, and we&apos;ll email you when tickets become available.
                     </p>
                   </div>
 
@@ -238,13 +285,6 @@ export default function Home() {
                     <h3 className="font-normal text-foreground mb-2">Is this official?</h3>
                     <p className="text-muted-foreground font-light leading-relaxed">
                       No, this is an unofficial tool created to help visitors secure tickets. It is not affiliated with or endorsed by Glenstone Museum.
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="font-normal text-foreground mb-2">When are tickets released?</h3>
-                    <p className="text-muted-foreground font-light leading-relaxed">
-                      Glenstone typically releases tickets one month in advance. New dates are usually added on the first business day of each month, though this can vary.
                     </p>
                   </div>
 

@@ -48,6 +48,9 @@ const TIME_SLOTS: TimeSlot[] = [
   "16:00", "16:15"
 ];
 
+// Glenstone is closed Monday–Wednesday (JS Date.getDay: Mon=1, Tue=2, Wed=3)
+const CLOSED_WEEKDAYS = new Set([1, 2, 3]);
+
 // Helper to format time slots for display
 function formatTimeLabel(time: TimeSlot): string {
   const [hourStr, minuteStr] = time.split(":");
@@ -76,6 +79,10 @@ function isTimeSlotInPast(date: Date, timeSlot: TimeSlot): boolean {
   slotTime.setHours(hour, minute, 0, 0);
 
   return slotTime < today;
+}
+
+function isClosedDay(date: Date): boolean {
+  return CLOSED_WEEKDAYS.has(date.getDay());
 }
 
 const formSchema = z.object({
@@ -154,10 +161,15 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
   useEffect(() => {
     if (isOpen && prefilledDate) {
       const date = parseISO(prefilledDate);
-      setSelectedDates([date]);
-      form.setValue("dates", [date]);
-      // Force calendar to re-render with the new selected date
-      setCalendarKey((prev) => prev + 1);
+      if (!isClosedDay(date)) {
+        setSelectedDates([date]);
+        form.setValue("dates", [date]);
+        // Force calendar to re-render with the new selected date
+        setCalendarKey((prev) => prev + 1);
+      } else {
+        setSelectedDates([]);
+        form.setValue("dates", []);
+      }
     } else if (!isOpen) {
       // Reset form when modal closes
       setSelectedDates([]);
@@ -335,15 +347,18 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                           selected={selectedDates}
                           defaultMonth={selectedDates.length > 0 ? selectedDates[0] : undefined}
                           onSelect={(dates) => {
-                            setSelectedDates(dates || []);
-                            field.onChange(dates || []);
+                            const sanitizedDates = (dates || []).filter(
+                              (value) => !isClosedDay(value)
+                            );
+                            setSelectedDates(sanitizedDates);
+                            field.onChange(sanitizedDates);
                           }}
                           disabled={(date) => {
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
                             const checkDate = new Date(date);
                             checkDate.setHours(0, 0, 0, 0);
-                            return checkDate < today;
+                            return checkDate < today || isClosedDay(checkDate);
                           }}
                           className="rounded-md border w-full [&_.rdp]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-caption]:flex [&_.rdp-caption]:justify-between [&_.rdp-caption]:items-center [&_.rdp-caption]:px-2 [&_.rdp-nav]:flex [&_.rdp-nav]:space-x-1 [&_.rdp-head]:w-full [&_.rdp-head_row]:grid [&_.rdp-head_row]:grid-cols-7 [&_.rdp-head_row]:text-center [&_.rdp-tbody]:w-full [&_.rdp-tbody]:space-y-1 [&_.rdp-row]:grid [&_.rdp-row]:grid-cols-7 [&_.rdp-row]:gap-1 [&_.rdp-cell]:relative [&_.rdp-day]:h-[var(--cell-size)] [&_.rdp-day]:w-[var(--cell-size)] [&_.rdp-day]:aspect-auto [&_.rdp-day_button]:h-full [&_.rdp-day_button]:w-full [&_.rdp-day_button]:rounded-md"
                         />
@@ -360,7 +375,9 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                     </div>
                   </FormControl>
                   <FormDescription>
-                    Select one or more dates to monitor
+                    {selectedDates.length === 0
+                      ? "Select one or more dates to monitor. The museum is closed on Monday, Tuesday, and Wednesday."
+                      : "Adjust your monitored dates above as needed. The museum is closed on Monday, Tuesday, and Wednesday."}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -236,3 +236,52 @@ export async function fetchHourlyForecast(
 
   return response.json();
 }
+
+export interface CurrentWeatherPayload {
+  currentWeather?: {
+    asOf: string;
+    cloudCover: number;
+    conditionCode: string;
+    daylight: boolean;
+    humidity: number;
+    precipitationIntensity: number;
+    pressure: number;
+    pressureTrend: string;
+    temperature: number;
+    temperatureApparent: number;
+    temperatureDewPoint: number;
+    uvIndex: number;
+    visibility: number;
+    windDirection: number;
+    windGust: number;
+    windSpeed: number;
+  };
+}
+
+/**
+ * Fetch current weather conditions from WeatherKit
+ */
+export async function fetchCurrentWeather(): Promise<CurrentWeatherPayload> {
+  const token = generateWeatherKitToken();
+
+  const params = new URLSearchParams({
+    dataSets: "currentWeather",
+    timezone: "America/New_York",
+  });
+
+  const url = `https://weatherkit.apple.com/api/v1/weather/en/${GLENSTONE_LAT}/${GLENSTONE_LON}?${params}`;
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("WeatherKit current weather error:", response.status, errorText);
+    throw new Error(`WeatherKit API error: ${response.status}`);
+  }
+
+  return response.json();
+}

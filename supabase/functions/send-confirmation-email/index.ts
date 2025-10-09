@@ -12,6 +12,9 @@ interface Alert {
   preferredTimes?: string[];
   quantity: number;
   minCapacity?: number;
+  // Optional management tokens for manage link
+  managementToken?: string;
+  management_token?: string;
 }
 
 interface RequestBody {
@@ -379,7 +382,7 @@ serve(async (req) => {
       const siteUrl = originHeader || Deno.env.get("SITE_URL") || Deno.env.get("NEXT_PUBLIC_SITE_URL") || "https://glenstone-tracker.vercel.app";
 
       // Build manage URL if alert has a management token
-      const token = (body.alert as any).managementToken ?? (body.alert as any).management_token;
+      const token = body.alert.managementToken ?? body.alert.management_token;
       const manageUrl = token ? `${siteUrl}/manage/${token}` : undefined;
 
       recipientEmail = body.alert.email;

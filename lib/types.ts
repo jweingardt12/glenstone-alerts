@@ -165,3 +165,12 @@ export interface HourlyWeather {
 export interface HourlyWeatherResponse {
   [hour: string]: HourlyWeather; // Keyed by hour (e.g., "10", "11", "12")
 }
+
+export interface CurrentWeather {
+  temperature: number;
+  feelsLike: number;
+  conditionCode: string;
+  humidity: number;
+  windSpeed: number;
+  observationTime: string;
+}

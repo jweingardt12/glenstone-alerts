@@ -404,7 +404,7 @@ serve(async (req) => {
     const weatherData = await fetchWeather(dates);
 
     // Build manage URL if token is present
-    const token = (alert as any).managementToken ?? (alert as any).management_token;
+    const token = alert.managementToken ?? alert.management_token;
     const originHeader = req.headers.get("origin");
     const siteUrl = originHeader || Deno.env.get("SITE_URL") || Deno.env.get("NEXT_PUBLIC_SITE_URL") || "https://glenstone-tracker.vercel.app";
     const manageUrl = token ? `${siteUrl}/manage/${token}` : undefined;

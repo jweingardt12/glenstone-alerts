@@ -10,10 +10,13 @@ interface Alert {
   id: string;
   email: string;
   dates: string[];
-  time_of_day: string;
+  time_of_day?: string;
+  preferred_times?: string[];
   quantity: number;
   min_capacity?: number;
   active: boolean;
+  management_token?: string;
+  last_notified_at?: string;
 }
 
 interface CalendarDate {
@@ -25,22 +28,47 @@ interface CalendarDate {
   };
 }
 
+interface EventSession {
+  id: string;
+  start_datetime: string;
+  end_datetime: string;
+  capacity: number;
+  used_capacity: number;
+  sold_out: boolean;
+}
+
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Glenstone API constants
+const GLENSTONE_CONFIG = {
+  BASE_URL: "https://visit.glenstone.org",
+  EVENT_ID: "8c42a85b-0f1b-eee0-a921-8464481a74f6",
+  TICKET_TYPE_ID: "66b9a9ca-39a1-7a8f-956d-0861a4e17c98",
+};
+
 // Fetch calendar availability from Glenstone
 async function fetchCalendarAvailability(quantity: number) {
-  const params = new URLSearchParams({
-    quantity: quantity.toString(),
-    "categories[]": "3095",
-    shop: "true",
-  });
+  const url = `${GLENSTONE_CONFIG.BASE_URL}/api/events/${GLENSTONE_CONFIG.EVENT_ID}/calendar?_format=extended`;
 
-  const response = await fetch(
-    `https://glenstone.org/wp-json/wc/v3/bookings/products/86/slots?${params}`
-  );
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      accept: "application/json, text/plain, */*",
+      "content-type": "application/json",
+      "tix-app": "ecomm",
+    },
+    body: JSON.stringify({
+      ticket_types_required: [
+        {
+          ticket_type_id: GLENSTONE_CONFIG.TICKET_TYPE_ID,
+          quantity,
+        },
+      ],
+    }),
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch availability: ${response.statusText}`);
@@ -49,11 +77,35 @@ async function fetchCalendarAvailability(quantity: number) {
   return await response.json();
 }
 
-// Generate booking URL
-function generateBookingUrl(date: string, quantity: number): string {
-  const baseUrl = "https://glenstone.org/visit/";
-  return `${baseUrl}?date=${date}&quantity=${quantity}`;
+// Fetch day sessions from Glenstone
+async function fetchDaySessions(date: string, quantity: number) {
+  const url = `${GLENSTONE_CONFIG.BASE_URL}/api/events/${GLENSTONE_CONFIG.EVENT_ID}/sessions?_include_sold_out=true&_ondate=${date}&_sort=start_datetime`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      accept: "application/json, text/plain, */*",
+      "content-type": "application/json",
+      "tix-app": "ecomm",
+    },
+    body: JSON.stringify({
+      ticket_types_required: [
+        {
+          ticket_type_id: GLENSTONE_CONFIG.TICKET_TYPE_ID,
+          quantity,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch sessions: ${response.statusText}`);
+  }
+
+  return await response.json();
 }
+
+// Note: booking URL generation not needed here; handled by email function
 
 // Send email notification
 async function sendEmail(alert: Alert, availableDates: CalendarDate[]) {
@@ -67,7 +119,7 @@ async function sendEmail(alert: Alert, availableDates: CalendarDate[]) {
     },
     body: JSON.stringify({
       // Ensure management_token is preserved for manage-link generation
-      alert: { ...(alert as any), management_token: (alert as any).management_token },
+      alert: { ...alert, management_token: alert.management_token },
       availableDates,
     }),
   });
@@ -227,19 +279,21 @@ serve(async (req) => {
             continue;
           }
 
-          // Find matching dates
-          const matchedDates = availableDates.filter((date: CalendarDate) => {
+          // Find matching dates with time slot availability
+          const matchedDates: CalendarDate[] = [];
+
+          for (const date of availableDates) {
             // Skip dates in the past
             const dateObj = new Date(date.date + 'T00:00:00');
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             if (dateObj < today) {
-              return false;
+              continue;
             }
 
             // Check if date is in alert's date list
             if (!alert.dates.includes(date.date)) {
-              return false;
+              continue;
             }
 
             // Check minimum capacity if specified
@@ -247,12 +301,40 @@ serve(async (req) => {
               const available =
                 date.availability.capacity - date.availability.used_capacity;
               if (available < alert.min_capacity) {
-                return false;
+                continue;
               }
             }
 
-            return true;
-          });
+            // If user has preferred times, check if any sessions match
+            if (alert.preferred_times && alert.preferred_times.length > 0) {
+              try {
+                const sessionsData = await fetchDaySessions(date.date, quantity);
+                const availableSessions = sessionsData.event_session._data.filter(
+                  (session: EventSession) => !session.sold_out
+                );
+
+                // Check if any available session matches user's preferred times
+                const hasMatchingTimeSlot = availableSessions.some((session: EventSession) => {
+                  const sessionTime = new Date(session.start_datetime);
+                  const hours = sessionTime.getHours();
+                  const minutes = sessionTime.getMinutes();
+                  const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+                  return alert.preferred_times?.includes(timeString);
+                });
+
+                if (hasMatchingTimeSlot) {
+                  matchedDates.push(date);
+                  console.log(`✅ Date ${date.date} has matching time slots for ${alert.email}`);
+                }
+              } catch (error) {
+                console.error(`Error fetching sessions for ${date.date}:`, error);
+              }
+            } else {
+              // No preferred times specified, date availability is enough
+              matchedDates.push(date);
+            }
+          }
 
           if (matchedDates.length > 0) {
             console.log(
@@ -265,6 +347,7 @@ serve(async (req) => {
               email: alert.email,
               dates: alert.dates,
               time_of_day: alert.time_of_day,
+              preferred_times: alert.preferred_times,
               quantity: alert.quantity,
               min_capacity: alert.min_capacity,
               active: alert.active,

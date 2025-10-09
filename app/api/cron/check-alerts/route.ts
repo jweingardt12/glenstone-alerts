@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { fetchCalendarAvailability } from "@/lib/glenstone-api";
+import { fetchCalendarAvailability, fetchDaySessions } from "@/lib/glenstone-api";
 import { sendAvailabilityAlert } from "@/lib/notifications";
+import type { CalendarDate, EventSession } from "@/lib/types";
 
 /**
  * Cron job endpoint to check alerts and send notifications
@@ -9,7 +10,7 @@ import { sendAvailabilityAlert } from "@/lib/notifications";
  * Usage:
  * 1. For local testing: Call GET /api/cron/check-alerts
  * 2. For Vercel Cron: Add to vercel.json (see vercel.json file)
- * 3. For external cron: Use a service like cron-job.org to hit this endpoint every 15 minutes
+ * 3. For external cron: Use a service like cron-job.org to hit this endpoint every 30 minutes
  *
  * Security: In production, add authentication header check
  */
@@ -94,19 +95,21 @@ export async function GET(request: NextRequest) {
             continue;
           }
 
-          // Find matching dates
-          const matchedDates = availableDates.filter((date) => {
+          // Find matching dates with time slot availability
+          const matchedDates: CalendarDate[] = [];
+
+          for (const date of availableDates) {
             // Skip dates in the past
             const dateObj = new Date(date.date + 'T00:00:00');
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             if (dateObj < today) {
-              return false;
+              continue;
             }
 
             // Check if date is in alert's date list
             if (!alert.dates.includes(date.date)) {
-              return false;
+              continue;
             }
 
             // Check minimum capacity if specified
@@ -114,12 +117,42 @@ export async function GET(request: NextRequest) {
               const available =
                 date.availability.capacity - date.availability.used_capacity;
               if (available < alert.minCapacity) {
-                return false;
+                continue;
               }
             }
 
-            return true;
-          });
+            // If user has preferred times, check if any sessions match
+            if (alert.preferredTimes && alert.preferredTimes.length > 0) {
+              try {
+                const sessionsData = await fetchDaySessions(date.date, quantity);
+                const availableSessions = sessionsData.event_session._data.filter(
+                  (session: EventSession) => !session.sold_out
+                );
+
+                // Check if any available session matches user's preferred times
+                const hasMatchingTimeSlot = availableSessions.some((session: EventSession) => {
+                  const sessionTime = new Date(session.start_datetime);
+                  const hours = sessionTime.getHours();
+                  const minutes = sessionTime.getMinutes();
+                  const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+                  return Array.isArray(alert.preferredTimes)
+                    ? (alert.preferredTimes as string[]).includes(timeString)
+                    : false;
+                });
+
+                if (hasMatchingTimeSlot) {
+                  matchedDates.push(date);
+                  console.log(`✅ Date ${date.date} has matching time slots for ${alert.email}`);
+                }
+              } catch (error) {
+                console.error(`Error fetching sessions for ${date.date}:`, error);
+              }
+            } else {
+              // No preferred times specified, date availability is enough
+              matchedDates.push(date);
+            }
+          }
 
           if (matchedDates.length > 0) {
             console.log(

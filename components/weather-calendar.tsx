@@ -6,11 +6,16 @@ import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
 import { DayButton, DayPicker } from "react-day-picker";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { WeatherIcon } from "@/components/weather-icon";
+import { cn } from "@/lib/utils";
 import type { WeatherResponse } from "@/lib/types";
 
 type WeatherCalendarProps = React.ComponentProps<typeof DayPicker>;
 
-export function WeatherCalendar(props: WeatherCalendarProps) {
+export function WeatherCalendar({
+  className,
+  onMonthChange,
+  ...props
+}: WeatherCalendarProps) {
   const [weatherData, setWeatherData] = useState<WeatherResponse | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -46,6 +51,7 @@ export function WeatherCalendar(props: WeatherCalendarProps) {
   // Track month changes
   const handleMonthChange = (date: Date) => {
     setCurrentMonth(date);
+    onMonthChange?.(date);
   };
 
   // Custom day button with weather
@@ -57,12 +63,21 @@ export function WeatherCalendar(props: WeatherCalendarProps) {
     const weather = weatherData?.[dateStr];
 
     return (
-      <CalendarDayButton day={day} {...buttonProps}>
-        <span>{day.date.getDate()}</span>
+      <CalendarDayButton
+        day={day}
+        {...buttonProps}
+        className="relative flex-col items-center justify-center gap-0.5 px-1 pb-4 pt-2 sm:pb-2 sm:pt-1 sm:gap-1"
+      >
+        <span className="text-xs font-medium sm:text-sm">
+          {day.date.getDate()}
+        </span>
         {weather && (
-          <div className="flex items-center justify-center gap-0.5 opacity-70">
-            <WeatherIcon conditionCode={weather.conditionCode} className="h-3 w-3" />
-            <span className="text-[10px]">{Math.round(weather.temperatureMax)}°</span>
+          <div className="pointer-events-none absolute bottom-1 left-1/2 flex -translate-x-1/2 items-center justify-center gap-0.5 text-[0.625rem] text-muted-foreground sm:static sm:translate-x-0 sm:text-[0.7rem]">
+            <WeatherIcon
+              conditionCode={weather.conditionCode}
+              className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+            />
+            <span>{Math.round(weather.temperatureMax)}°</span>
           </div>
         )}
       </CalendarDayButton>
@@ -71,11 +86,15 @@ export function WeatherCalendar(props: WeatherCalendarProps) {
 
   return (
     <Calendar
-      {...props}
+      className={cn(
+        "[--cell-size:clamp(2.6rem,12vw,3.25rem)] sm:[--cell-size:2.6rem] md:[--cell-size:2.75rem]",
+        className
+      )}
       onMonthChange={handleMonthChange}
       components={{
         DayButton: WeatherDayButton,
       }}
+      {...props}
     />
   );
 }
