@@ -17,7 +17,8 @@ interface Alert {
   id: string;
   email: string;
   dates: string[];
-  timeOfDay: string;
+  timeOfDay?: string;
+  preferredTimes?: string[];
   quantity: number;
   minCapacity?: number;
   // Optional management token (camelCase)
@@ -93,8 +94,9 @@ async function fetchWeather(dates: string[]): Promise<WeatherResponse> {
     const endDate = dates[dates.length - 1];
 
     // Call the main site's weather API
+    const siteUrl = Deno.env.get("SITE_URL") || Deno.env.get("NEXT_PUBLIC_SITE_URL") || "https://glenstone-tracker.vercel.app";
     const response = await fetch(
-      `https://glenstone-alerts.vercel.app/api/weather?startDate=${startDate}&endDate=${endDate}`
+      `${siteUrl}/api/weather?startDate=${startDate}&endDate=${endDate}`
     );
 
     if (!response.ok) {
@@ -213,10 +215,17 @@ function generateAvailabilityEmail(
                   <td style="padding: 6px 0; color: #78716c; font-size: 14px;">Party Size</td>
                   <td style="padding: 6px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.quantity} ${alert.quantity === 1 ? "person" : "people"}</td>
                 </tr>
+                ${alert.preferredTimes && alert.preferredTimes.length > 0 ? `
+                <tr>
+                  <td style="padding: 6px 0; color: #78716c; font-size: 14px;">Preferred Times</td>
+                  <td style="padding: 6px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.preferredTimes.join(", ")}</td>
+                </tr>
+                ` : alert.timeOfDay && alert.timeOfDay !== "any" ? `
                 <tr>
                   <td style="padding: 6px 0; color: #78716c; font-size: 14px;">Time Preference</td>
-                  <td style="padding: 6px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.timeOfDay === "any" ? "Any time" : alert.timeOfDay.charAt(0).toUpperCase() + alert.timeOfDay.slice(1)}</td>
+                  <td style="padding: 6px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.timeOfDay.charAt(0).toUpperCase() + alert.timeOfDay.slice(1)}</td>
                 </tr>
+                ` : ""}
                 ${alert.minCapacity ? `
                 <tr>
                   <td style="padding: 6px 0; color: #78716c; font-size: 14px;">Minimum Capacity</td>
@@ -394,7 +403,7 @@ serve(async (req) => {
     // Build manage URL if token is present
     const token = (alert as any).managementToken ?? (alert as any).management_token;
     const originHeader = req.headers.get("origin");
-    const siteUrl = originHeader || Deno.env.get("SITE_URL") || Deno.env.get("NEXT_PUBLIC_SITE_URL") || "https://glenstone-alerts.vercel.app";
+    const siteUrl = originHeader || Deno.env.get("SITE_URL") || Deno.env.get("NEXT_PUBLIC_SITE_URL") || "https://glenstone-tracker.vercel.app";
     const manageUrl = token ? `${siteUrl}/manage/${token}` : undefined;
     console.log("send-alert-email: manageUrl:", manageUrl);
 
