@@ -138,10 +138,17 @@ function generateAvailabilityEmail(
                   <td style="padding: 6px 0; color: #78716c; font-size: 14px;">Party Size</td>
                   <td style="padding: 6px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.quantity} ${alert.quantity === 1 ? "person" : "people"}</td>
                 </tr>
+                ${alert.preferredTimes && alert.preferredTimes.length > 0 ? `
+                <tr>
+                  <td style="padding: 6px 0; color: #78716c; font-size: 14px;">Preferred Times</td>
+                  <td style="padding: 6px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.preferredTimes.join(", ")}</td>
+                </tr>
+                ` : alert.timeOfDay && alert.timeOfDay !== "any" ? `
                 <tr>
                   <td style="padding: 6px 0; color: #78716c; font-size: 14px;">Time Preference</td>
-                  <td style="padding: 6px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.timeOfDay === "any" ? "Any time" : alert.timeOfDay.charAt(0).toUpperCase() + alert.timeOfDay.slice(1)}</td>
+                  <td style="padding: 6px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.timeOfDay.charAt(0).toUpperCase() + alert.timeOfDay.slice(1)}</td>
                 </tr>
+                ` : ""}
                 ${alert.minCapacity ? `
                 <tr>
                   <td style="padding: 6px 0; color: #78716c; font-size: 14px;">Minimum Capacity</td>
@@ -297,10 +304,17 @@ export async function sendAlertConfirmation(alert: Alert): Promise<boolean> {
                   <td style="padding: 8px 0; color: #78716c; font-size: 14px;">Party Size</td>
                   <td style="padding: 8px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.quantity} ${alert.quantity === 1 ? "person" : "people"}</td>
                 </tr>
+                ${alert.preferredTimes && alert.preferredTimes.length > 0 ? `
+                <tr>
+                  <td style="padding: 8px 0; color: #78716c; font-size: 14px;">Preferred Times</td>
+                  <td style="padding: 8px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.preferredTimes.join(", ")}</td>
+                </tr>
+                ` : alert.timeOfDay && alert.timeOfDay !== "any" ? `
                 <tr>
                   <td style="padding: 8px 0; color: #78716c; font-size: 14px;">Time Preference</td>
-                  <td style="padding: 8px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.timeOfDay === "any" ? "Any time" : alert.timeOfDay.charAt(0).toUpperCase() + alert.timeOfDay.slice(1)}</td>
+                  <td style="padding: 8px 0; color: #1c1917; font-size: 14px; text-align: right;">${alert.timeOfDay.charAt(0).toUpperCase() + alert.timeOfDay.slice(1)}</td>
                 </tr>
+                ` : ""}
                 ${alert.minCapacity ? `
                 <tr>
                   <td style="padding: 8px 0; color: #78716c; font-size: 14px;">Minimum Capacity</td>
