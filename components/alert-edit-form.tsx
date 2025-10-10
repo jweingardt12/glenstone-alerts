@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -168,7 +168,7 @@ export function AlertEditForm({ alert, onSuccess, onCancel }: AlertEditFormProps
       onSuccess(data.alert);
     } catch (error) {
       console.error("Error updating alert:", error);
-      alert(error instanceof Error ? error.message : "Failed to update alert");
+      window.alert(error instanceof Error ? error.message : "Failed to update alert");
     } finally {
       setIsSubmitting(false);
     }
