@@ -5,6 +5,7 @@ import { ExternalLink } from "lucide-react";
 import { AlertsManager } from "@/components/alerts-manager";
 import { UnsubscribeButton } from "@/components/unsubscribe-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AnimatedBlurBackground } from "@/components/animated-blur-background";
 import { isValidTokenFormat } from "@/lib/token";
 import { db } from "@/lib/db";
 
@@ -44,18 +45,11 @@ export default async function ManageAlertsPage({ params }: PageProps) {
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
       <header className="relative w-full h-[220px] sm:h-[250px] md:h-[300px] overflow-hidden">
-        {/* Background Image */}
-        <Image
-          src="/glenstone.jpeg"
-          alt="Glenstone Museum"
-          fill
-          priority
-          className="object-cover object-center"
-          sizes="100vw"
-        />
+        {/* Animated Blur Background */}
+        <AnimatedBlurBackground />
 
         {/* Gradient Overlay for text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60 dark:from-black/70 dark:via-black/50 dark:to-black/70 transition-colors duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/50 dark:from-black/60 dark:via-black/40 dark:to-black/60 transition-colors duration-300" />
 
         {/* Content */}
         <div className="relative h-full container mx-auto px-4 sm:px-6 py-4 sm:py-8">
@@ -168,35 +162,6 @@ export default async function ManageAlertsPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* Info Section */}
-            <div className="bg-muted/50 border rounded-sm p-6">
-              <h3 className="text-lg font-light mb-4">How It Works</h3>
-              {hasAlerts ? (
-                <ul className="space-y-2 text-sm text-muted-foreground font-light leading-relaxed">
-                  <li>
-                    • <strong className="font-normal">Active alerts</strong> will notify you when tickets
-                    become available
-                  </li>
-                  <li>
-                    • <strong className="font-normal">Deactivate</strong> an alert to pause notifications
-                    without deleting it
-                  </li>
-                  <li>
-                    • <strong className="font-normal">Delete</strong> an alert permanently if you no longer
-                    need it
-                  </li>
-                  <li>
-                    • We check availability regularly throughout the day
-                  </li>
-                </ul>
-              ) : (
-                <ul className="space-y-2 text-sm text-muted-foreground font-light leading-relaxed">
-                  <li>• Create an alert for your preferred dates and party size.</li>
-                  <li>• We&apos;ll email you when tickets open up for your preferences.</li>
-                  <li>• Manage, pause, or delete alerts anytime using your link.</li>
-                </ul>
-              )}
-            </div>
           </div>
         </div>
       </main>

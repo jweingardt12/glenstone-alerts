@@ -185,3 +185,10 @@ export interface EmailVerification {
   expiresAt: string;
   attempts: number;
 }
+
+export interface VerificationRateLimit {
+  id: string;
+  ipAddress: string;
+  email: string;
+  createdAt: string;
+}

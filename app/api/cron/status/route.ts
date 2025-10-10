@@ -83,7 +83,7 @@ export async function GET() {
         }),
         ...(timeSinceLastExecution === null && {
           info: "No executions recorded yet. This is normal for new deployments.",
-          action: "Wait 30 minutes or manually trigger: curl /api/cron/check-alerts",
+          action: "Wait 10 minutes or manually trigger: curl /api/cron/check-alerts",
         }),
         ...(failedLogs.length > 0 && {
           warning: `${failedLogs.length} of last ${recentLogs.length} executions failed.`,

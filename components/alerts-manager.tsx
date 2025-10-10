@@ -3,7 +3,15 @@
 import { useState } from "react";
 import type { Alert } from "@/lib/types";
 import { AlertModal } from "@/components/alert-modal";
+import { AlertEditForm } from "@/components/alert-edit-form";
 import { useOpenPanel } from "@openpanel/nextjs";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 interface AlertsManagerProps {
   initialAlerts: Alert[];
@@ -12,7 +20,7 @@ interface AlertsManagerProps {
 export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
   const { track } = useOpenPanel();
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
-  // const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
@@ -27,12 +35,24 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
   });
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    // Parse YYYY-MM-DD format and create date in local timezone to avoid timezone shifts
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
+  };
+
+  const formatTimeSlot = (time: string): string => {
+    const [hourStr, minuteStr] = time.split(":");
+    const hour = parseInt(hourStr);
+    const minute = minuteStr;
+
+    if (hour === 12) return `12:${minute} PM`;
+    if (hour > 12) return `${hour - 12}:${minute} PM`;
+    return `${hour}:${minute} AM`;
   };
 
   const handleDelete = async (id: string) => {
@@ -90,6 +110,7 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
       setAlerts((prevAlerts) =>
         prevAlerts.map((alert) => (alert.id === id ? updatedAlert : alert))
       );
+      track(updatedAlert.active ? "alert_activated" : "alert_paused");
     } catch (error) {
       console.error("Error updating alert:", error);
       setAlertModal({
@@ -146,20 +167,29 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
                 </div>
                 <div>
                   <strong className="font-normal text-stone-900">Time Preference:</strong>{" "}
-                  {alert.timeOfDay === "any" ? "Any time" : alert.timeOfDay}
+                  {alert.preferredTimes && alert.preferredTimes.length > 0
+                    ? alert.preferredTimes.map((time) => formatTimeSlot(time)).join(", ")
+                    : "Any time"}
                 </div>
                 {alert.minCapacity && (
                   <div>
                     <strong className="font-normal text-stone-900">Minimum Capacity:</strong> {alert.minCapacity} slots
                   </div>
                 )}
-                <div className="text-xs text-stone-400 mt-2">
-                  Created: {formatDate(alert.createdAt)}
-                </div>
               </div>
             </div>
 
             <div className="flex gap-2 ml-4">
+              <button
+                onClick={() => {
+                  track("alert_edit_opened");
+                  setEditingAlert(alert);
+                }}
+                disabled={loading === alert.id}
+                className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-sm text-sm font-light hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out active:scale-95"
+              >
+                Edit
+              </button>
               <button
                 onClick={() => handleToggleActive(alert.id, alert.active)}
                 disabled={loading === alert.id}
@@ -194,6 +224,40 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
         title={alertModal.title}
         message={alertModal.message}
       />
+
+      {/* Edit Alert Sheet */}
+      <Sheet open={editingAlert !== null} onOpenChange={(open) => !open && setEditingAlert(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl p-0 flex flex-col h-full">
+          <SheetHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
+            <SheetTitle className="text-2xl font-light">Edit Alert</SheetTitle>
+            <SheetDescription className="text-sm font-light">
+              Update your alert preferences below.
+            </SheetDescription>
+          </SheetHeader>
+
+          {editingAlert && (
+            <AlertEditForm
+              alert={editingAlert}
+              onSuccess={(updatedAlert) => {
+                setAlerts((prevAlerts) =>
+                  prevAlerts.map((alert) =>
+                    alert.id === updatedAlert.id ? updatedAlert : alert
+                  )
+                );
+                setEditingAlert(null);
+                track("alert_edited");
+                setAlertModal({
+                  isOpen: true,
+                  type: "success",
+                  title: "Alert Updated",
+                  message: "Your alert has been successfully updated.",
+                });
+              }}
+              onCancel={() => setEditingAlert(null)}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

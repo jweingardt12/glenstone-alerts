@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CalendarSkeleton, ListSkeleton } from "@/components/calendar-skeleton";
+import { AnimatedBlurBackground } from "@/components/animated-blur-background";
 // import { format, parseISO } from "date-fns";
 import { ExternalLink, RotateCw } from "lucide-react";
 import type {
@@ -35,8 +36,7 @@ export default function Home() {
   const emojis = useMemo(
     () => [
       // Art + creative
-      '🎨', '🖼️', '🖌️', '🖍️', '✏️', '🖋️', '✒️', '🧑‍🎨',
-      '🎭', '🎬', '📷', '🎥', '🎞️', '🏺', '🗿', '🏛️', '❤️'
+      '❤️','💙','💚','💛','💜','🧡','💛','💚','💙','💜','🧡','❤️'
     ],
     []
   );
@@ -126,18 +126,11 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
       <header className="relative w-full h-[220px] sm:h-[250px] md:h-[300px] overflow-hidden">
-        {/* Background Image */}
-        <Image
-          src="/glenstone.jpeg"
-          alt="Glenstone Museum"
-          fill
-          priority
-          className="object-cover object-center"
-          sizes="100vw"
-        />
+        {/* Animated Blur Background */}
+        <AnimatedBlurBackground />
 
         {/* Gradient Overlay for text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60 dark:from-black/70 dark:via-black/50 dark:to-black/70 transition-colors duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/50 dark:from-black/60 dark:via-black/40 dark:to-black/60 transition-colors duration-300" />
 
         {/* Content */}
         <div className="relative h-full container mx-auto px-4 sm:px-6 py-4 sm:py-8">
@@ -265,7 +258,7 @@ export default function Home() {
                   <div>
                     <h3 className="font-normal text-foreground mb-2">How does this work?</h3>
                     <p className="text-muted-foreground font-light leading-relaxed">
-                      This tool checks Glenstone&apos;s ticket availability every 30 minutes. Create an alert by selecting your preferred dates, and we&apos;ll email you when tickets become available. You&apos;ll still need to check out on the Glenstone site - all this does is notify you when tickets become available.
+                      This tool checks Glenstone&apos;s ticket availability every 10 minutes. Create an alert by selecting your preferred dates, and we&apos;ll email you when tickets become available. You&apos;ll still need to check out on the Glenstone site - all this does is notify you when tickets become available.
                     </p>
                   </div>
 

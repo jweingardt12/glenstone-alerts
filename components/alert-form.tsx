@@ -164,6 +164,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
   const [verifyingCode, setVerifyingCode] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [verificationSuccess, setVerificationSuccess] = useState(false);
 
   // Support controlled or uncontrolled mode
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
@@ -216,6 +217,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
       setVerificationCode("");
       setVerificationError(null);
       setResendCooldown(0);
+      setVerificationSuccess(false);
     }
   }, [prefilledDate, isOpen, form]);
 
@@ -249,6 +251,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
         setNeedsVerification(true);
         setVerificationSent(true);
         setResendCooldown(60); // 60 second cooldown
+        track("verification_code_sent");
       } else {
         // User already has alerts, skip verification
         setNeedsVerification(false);
@@ -277,9 +280,11 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
       const data = await response.json();
 
       if (!response.ok || !data.verified) {
+        track("verification_failed");
         throw new Error(data.error || "Invalid verification code");
       }
 
+      track("verification_success");
       return true;
     } catch (error) {
       console.error("Error verifying code:", error);
@@ -290,12 +295,29 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
     }
   };
 
+  // Handle inline verification
+  const handleVerifyCode = async () => {
+    const email = form.getValues("email");
+    
+    if (!verificationCode || verificationCode.length !== 4) {
+      setVerificationError("Please enter the 4-digit code");
+      return;
+    }
+
+    const verified = await verifyCode(email, verificationCode);
+    if (verified) {
+      setVerificationSuccess(true);
+      // Automatically proceed to create the alert after verification
+      form.handleSubmit(onSubmit)();
+    }
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
 
       // Step 1: Check if email needs verification (only for new users)
-      if (!needsVerification && !verificationSent) {
+      if (!needsVerification && !verificationSent && !verificationSuccess) {
         const needsVerify = await sendVerificationCode(values.email);
         if (needsVerify) {
           // Stop here and show verification UI
@@ -305,24 +327,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
         // If needsVerify is false, user already has alerts, continue to create alert
       }
 
-      // Step 2: If verification was sent, verify the code
-      if (needsVerification && verificationSent) {
-        if (!verificationCode || verificationCode.length !== 4) {
-          setVerificationError("Please enter the 4-digit code");
-          setIsSubmitting(false);
-          return;
-        }
-
-        const verified = await verifyCode(values.email, verificationCode);
-        if (!verified) {
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Code verified, continue to create alert
-      }
-
-      // Step 3: Create the alert
+      // Step 2: Create the alert (verification is handled separately by inline button)
       const response = await fetch("/api/alerts", {
         method: "POST",
         headers: {
@@ -443,7 +448,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
               />
 
               {/* Verification Code Input */}
-              {verificationSent && (
+              {verificationSent && !verificationSuccess && (
                 <div className="md:col-span-2 space-y-3">
                   <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-md">
                     <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-2">
@@ -457,19 +462,35 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Verification Code</label>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={4}
-                      placeholder="0000"
-                      value={verificationCode}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "");
-                        setVerificationCode(value);
-                        setVerificationError(null);
-                      }}
-                      className="text-center text-2xl tracking-widest font-mono"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="0000"
+                        value={verificationCode}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          setVerificationCode(value);
+                          setVerificationError(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && verificationCode.length === 4) {
+                            e.preventDefault();
+                            handleVerifyCode();
+                          }
+                        }}
+                        className="text-center text-2xl tracking-widest font-mono"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleVerifyCode}
+                        disabled={verifyingCode || verificationCode.length !== 4}
+                        className="shrink-0"
+                      >
+                        {verifyingCode ? "Verifying..." : "Verify"}
+                      </Button>
+                    </div>
                     {verificationError && (
                       <p className="text-sm text-red-600 dark:text-red-400">
                         {verificationError}
@@ -487,6 +508,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                         onClick={async () => {
                           const email = form.getValues("email");
                           if (email) {
+                            track("verification_code_resent");
                             await sendVerificationCode(email);
                           }
                         }}
@@ -507,6 +529,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                     <Select
                       onValueChange={(value) => field.onChange(parseInt(value))}
                       defaultValue={field.value.toString()}
+                      disabled={verificationSent && !verificationSuccess}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -553,6 +576,9 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                             field.onChange(sanitizedDates);
                           }}
                           disabled={(date) => {
+                            // Disable during verification
+                            if (verificationSent && !verificationSuccess) return true;
+
                             const now = new Date();
                             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                             const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -608,6 +634,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                       type="button"
                       variant="outline"
                       size="sm"
+                      disabled={verificationSent && !verificationSuccess}
                       onClick={() => {
                         const currentTimes = field.value || [];
                         const morningTimes = TIME_RANGES.morning.filter(time =>
@@ -623,6 +650,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                       type="button"
                       variant="outline"
                       size="sm"
+                      disabled={verificationSent && !verificationSuccess}
                       onClick={() => {
                         const currentTimes = field.value || [];
                         const middayTimes = TIME_RANGES.midday.filter(time =>
@@ -638,6 +666,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                       type="button"
                       variant="outline"
                       size="sm"
+                      disabled={verificationSent && !verificationSuccess}
                       onClick={() => {
                         const currentTimes = field.value || [];
                         const afternoonTimes = TIME_RANGES.afternoon.filter(time =>
@@ -653,6 +682,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                       type="button"
                       variant="ghost"
                       size="sm"
+                      disabled={verificationSent && !verificationSuccess}
                       onClick={() => field.onChange([])}
                     >
                       Clear
@@ -663,6 +693,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                     {TIME_SLOTS.map((time) => {
                       // Check if any selected date is today and if this time is in the past
                       const isPastTime = selectedDates.some((date) => isTimeSlotInPast(date, time));
+                      const isDisabledForVerification = verificationSent && !verificationSuccess;
 
                       return (
                         <FormField
@@ -678,7 +709,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                                 <FormControl>
                                   <Checkbox
                                     checked={field.value?.includes(time)}
-                                    disabled={isPastTime}
+                                    disabled={isPastTime || isDisabledForVerification}
                                     onCheckedChange={(checked) => {
                                       return checked
                                         ? field.onChange([...(field.value || []), time])
@@ -690,7 +721,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                                     }}
                                   />
                                 </FormControl>
-                                <FormLabel className={`text-sm font-normal ${isPastTime ? "opacity-50 cursor-not-allowed" : ""}`}>
+                                <FormLabel className={`text-sm font-normal ${isPastTime || isDisabledForVerification ? "opacity-50 cursor-not-allowed" : ""}`}>
                                   {formatTimeLabel(time)}
                                 </FormLabel>
                               </FormItem>
@@ -707,15 +738,15 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
             </div>
 
             <div className="border-t p-6 bg-background flex-shrink-0">
-              <Button type="submit" className="w-full" disabled={isSubmitting || verifyingCode}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isSubmitting || verifyingCode || (verificationSent && !verificationSuccess)}
+              >
                 {isSubmitting
-                  ? verificationSent && !verifyingCode
-                    ? "Creating Alert..."
-                    : "Sending Code..."
-                  : verifyingCode
-                  ? "Verifying..."
-                  : verificationSent
-                  ? "Verify & Create Alert"
+                  ? "Creating Alert..."
+                  : verificationSent && !verificationSuccess
+                  ? "Verify code above to continue"
                   : "Create Alert"}
               </Button>
             </div>

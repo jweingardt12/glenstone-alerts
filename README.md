@@ -21,8 +21,8 @@ A simple tool to get notified when free timed-entry [Glenstone Museum](https://g
 
 ## What To Expect
 
-- Ticket availability changes quickly; alerts don’t guarantee tickets will still be there.
-- The system checks availability roughly every 30 minutes.
+- Ticket availability changes quickly; alerts don't guarantee tickets will still be there.
+- The system checks availability roughly every 10 minutes.
 - To avoid spam, alerts include a 24‑hour cooldown between notifications for the same alert.
 - Works great on phones and desktops.
 

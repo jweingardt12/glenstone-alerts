@@ -1,5 +1,5 @@
 // Supabase database implementation for alerts
-import type { Alert, CreateAlertRequest, CronLog, EmailVerification } from "./types";
+import type { Alert, CreateAlertRequest, CronLog, EmailVerification, VerificationRateLimit } from "./types";
 import { generateManagementToken } from "./token";
 import { getSupabaseClient } from "./supabase";
 
@@ -669,6 +669,106 @@ export const db = {
 
       if (error) {
         console.error("Error cleaning up expired verifications:", error);
+      }
+    },
+  },
+
+  verificationRateLimits: {
+    /**
+     * Record a verification request for rate limiting
+     */
+    record: async (ipAddress: string, email: string): Promise<VerificationRateLimit> => {
+      const { data, error } = await supabase()
+        .from("verification_rate_limits")
+        .insert({
+          ip_address: ipAddress,
+          email: email,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error recording rate limit:", error);
+        throw new Error(`Failed to record rate limit: ${error.message}`);
+      }
+
+      return {
+        id: data.id,
+        ipAddress: data.ip_address,
+        email: data.email,
+        createdAt: data.created_at,
+      };
+    },
+
+    /**
+     * Get recent requests by IP address
+     * @param ipAddress - IP address to check
+     * @param hours - Number of hours to look back (default: 1)
+     */
+    getRecentByIp: async (ipAddress: string, hours: number = 1): Promise<VerificationRateLimit[]> => {
+      const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000);
+
+      const { data, error } = await supabase()
+        .from("verification_rate_limits")
+        .select("*")
+        .eq("ip_address", ipAddress)
+        .gte("created_at", cutoffTime.toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching rate limits by IP:", error);
+        return [];
+      }
+
+      return (data || []).map((row) => ({
+        id: row.id,
+        ipAddress: row.ip_address,
+        email: row.email,
+        createdAt: row.created_at,
+      }));
+    },
+
+    /**
+     * Get recent requests by email address
+     * @param email - Email address to check
+     * @param hours - Number of hours to look back (default: 24)
+     */
+    getRecentByEmail: async (email: string, hours: number = 24): Promise<VerificationRateLimit[]> => {
+      const cutoffTime = new Date(Date.now() - hours * 60 * 60 * 1000);
+
+      const { data, error } = await supabase()
+        .from("verification_rate_limits")
+        .select("*")
+        .eq("email", email)
+        .gte("created_at", cutoffTime.toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching rate limits by email:", error);
+        return [];
+      }
+
+      return (data || []).map((row) => ({
+        id: row.id,
+        ipAddress: row.ip_address,
+        email: row.email,
+        createdAt: row.created_at,
+      }));
+    },
+
+    /**
+     * Clean up old rate limit records (older than 24 hours)
+     */
+    cleanup: async (): Promise<void> => {
+      const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const { error } = await supabase()
+        .from("verification_rate_limits")
+        .delete()
+        .lt("created_at", cutoffTime.toISOString());
+
+      if (error) {
+        console.error("Error cleaning up rate limits:", error);
       }
     },
   },

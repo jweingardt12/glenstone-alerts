@@ -115,13 +115,13 @@ export function AvailabilityCalendar({
     if (startOfMonth(prev).getTime() < todayStart.getTime()) return;
     setDirection('left');
     setCurrentMonth(prev);
-    setTimeout(() => setDirection(null), 300);
+    setTimeout(() => setDirection(null), 500);
   };
 
   const handleNextMonth = () => {
     setDirection('right');
     setCurrentMonth(addMonths(currentMonth, 1));
-    setTimeout(() => setDirection(null), 300);
+    setTimeout(() => setDirection(null), 500);
   };
 
   return (

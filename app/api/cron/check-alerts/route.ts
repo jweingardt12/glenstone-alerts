@@ -10,7 +10,7 @@ import type { CalendarDate, EventSession } from "@/lib/types";
  * Usage:
  * 1. For local testing: Call GET /api/cron/check-alerts
  * 2. For Vercel Cron: Add to vercel.json (see vercel.json file)
- * 3. For external cron: Use a service like cron-job.org to hit this endpoint every 30 minutes
+ * 3. For external cron: Use a service like cron-job.org to hit this endpoint every 10 minutes
  *
  * Security: In production, add authentication header check
  */
