@@ -596,7 +596,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                         />
                       )}
                       {selectedDates.length > 0 && (
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-muted-foreground">
                           Selected {selectedDates.length} date
                           {selectedDates.length !== 1 ? "s" : ""}:{" "}
                           {selectedDates

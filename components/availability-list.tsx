@@ -112,7 +112,7 @@ export function AvailabilityList({
         <Button
           onClick={() => setVisibleCount((prev) => prev + 14)}
           variant="outline"
-          className="w-full mt-4 border-stone-300 text-stone-700 hover:bg-stone-50"
+          className="w-full mt-4"
         >
           Show Next 14 Days ({calendarData.length - visibleCount} remaining)
         </Button>
