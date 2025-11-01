@@ -36,7 +36,8 @@ export function DayCard({ dayData, weather, isSelected, onClick, onCreateAlert }
           className={`flex-1 text-left ${isSoldOut ? "cursor-not-allowed" : "cursor-pointer transition-all duration-200 ease-in-out active:opacity-70 active:scale-[0.99]"}`}
         >
           <div className="text-base font-light">
-            {format(date, "EEEE, MMMM d")}
+            <span className="sm:hidden">{format(date, "EEE, MMM d")}</span>
+            <span className="hidden sm:inline">{format(date, "EEEE, MMMM d")}</span>
           </div>
           <div className={`text-sm mt-1 ${isSoldOut ? "text-muted-foreground" : "text-muted-foreground"}`}>
             {isSoldOut ? "Sold out" : `~${available} ${available === 1 ? "pass" : "passes"} available`}

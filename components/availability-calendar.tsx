@@ -213,7 +213,7 @@ export function AvailabilityCalendar({
               <div
                 key={dateStr}
                 className={cn(
-                  "aspect-square border-b relative group overflow-hidden transition-all duration-200",
+                  "aspect-square min-h-[80px] md:min-h-[100px] border-b relative group overflow-hidden transition-all duration-200",
                   !isLastColumn && "border-r",
                   isPast && "bg-muted/30",
                   isClosed && "bg-muted/50",
@@ -259,10 +259,10 @@ export function AvailabilityCalendar({
                           <div className="text-xs mt-1 leading-tight">
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <span className="shrink-0">{getWeatherIcon(weather.conditionCode)}</span>
-                              <span>{`${Math.round(weather.temperatureMax)}°/${Math.round(weather.temperatureMin)}°`}</span>
+                              <span className="hidden sm:inline">{`${Math.round(weather.temperatureMax)}°/${Math.round(weather.temperatureMin)}°`}</span>
                             </div>
                             {weather.precipitationChance > 0 && (
-                              <div className="text-muted-foreground">{`${Math.round(weather.precipitationChance * 100)}% rain`}</div>
+                              <div className="text-muted-foreground hidden sm:block">{`${Math.round(weather.precipitationChance * 100)}% rain`}</div>
                             )}
                           </div>
                         )}
@@ -277,10 +277,10 @@ export function AvailabilityCalendar({
                           <div className="text-xs mt-1 leading-tight">
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <span className="shrink-0">{getWeatherIcon(weather.conditionCode)}</span>
-                              <span>{`${Math.round(weather.temperatureMax)}°/${Math.round(weather.temperatureMin)}°`}</span>
+                              <span className="hidden sm:inline">{`${Math.round(weather.temperatureMax)}°/${Math.round(weather.temperatureMin)}°`}</span>
                             </div>
                             {weather.precipitationChance > 0 && (
-                              <div className="text-muted-foreground">{`${Math.round(weather.precipitationChance * 100)}% rain`}</div>
+                              <div className="text-muted-foreground hidden sm:block">{`${Math.round(weather.precipitationChance * 100)}% rain`}</div>
                             )}
                           </div>
                         )}

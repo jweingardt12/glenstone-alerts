@@ -44,7 +44,7 @@ export default async function ManageAlertsPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
-      <header className="relative w-full h-[220px] sm:h-[250px] md:h-[300px] overflow-hidden">
+      <header className="relative w-full min-h-[180px] h-[220px] sm:h-[250px] md:h-[300px] overflow-hidden">
         {/* Animated Blur Background */}
         <AnimatedBlurBackground />
 
@@ -186,7 +186,7 @@ export default async function ManageAlertsPage({ params }: PageProps) {
                 href="https://github.com/jweingardt12/glenstone-alerts"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light"
+                className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light py-2 px-3"
               >
                 GitHub
                 <ExternalLink className="h-3 w-3" />
@@ -196,7 +196,7 @@ export default async function ManageAlertsPage({ params }: PageProps) {
                 href="https://dashboard.openpanel.dev/share/overview/d4VJHz"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light"
+                className="inline-flex items-center gap-1 hover:underline text-muted-foreground font-light py-2 px-3"
               >
                 Site stats
                 <ExternalLink className="h-3 w-3" />

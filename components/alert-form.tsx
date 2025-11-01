@@ -462,31 +462,64 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Verification Code</label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={4}
-                        placeholder="0000"
-                        value={verificationCode}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "");
-                          setVerificationCode(value);
-                          setVerificationError(null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && verificationCode.length === 4) {
-                            e.preventDefault();
-                            handleVerifyCode();
-                          }
-                        }}
-                        className="text-center text-2xl tracking-widest font-mono"
-                      />
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="flex gap-2 justify-center">
+                        {[0, 1, 2, 3].map((index) => (
+                          <Input
+                            key={index}
+                            id={`code-${index}`}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={1}
+                            value={verificationCode[index] || ""}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, "");
+                              if (value.length <= 1) {
+                                const newCode = verificationCode.split("");
+                                newCode[index] = value;
+                                const updatedCode = newCode.join("").slice(0, 4);
+                                setVerificationCode(updatedCode);
+                                setVerificationError(null);
+
+                                // Auto-focus next input
+                                if (value && index < 3) {
+                                  const nextInput = document.getElementById(`code-${index + 1}`) as HTMLInputElement;
+                                  nextInput?.focus();
+                                }
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              // Handle backspace
+                              if (e.key === "Backspace" && !verificationCode[index] && index > 0) {
+                                const prevInput = document.getElementById(`code-${index - 1}`) as HTMLInputElement;
+                                prevInput?.focus();
+                              }
+                              // Handle enter
+                              if (e.key === "Enter" && verificationCode.length === 4) {
+                                e.preventDefault();
+                                handleVerifyCode();
+                              }
+                            }}
+                            onPaste={(e) => {
+                              e.preventDefault();
+                              const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 4);
+                              setVerificationCode(pastedData);
+                              setVerificationError(null);
+                              if (pastedData.length === 4) {
+                                const lastInput = document.getElementById("code-3") as HTMLInputElement;
+                                lastInput?.focus();
+                              }
+                            }}
+                            className="text-center text-2xl font-mono w-14 h-14"
+                          />
+                        ))}
+                      </div>
                       <Button
                         type="button"
                         onClick={handleVerifyCode}
                         disabled={verifyingCode || verificationCode.length !== 4}
-                        className="shrink-0"
+                        className="shrink-0 w-full sm:w-auto"
                       >
                         {verifyingCode ? "Verifying..." : "Verify"}
                       </Button>
@@ -689,7 +722,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-x-4 gap-y-2 max-h-48 overflow-y-auto">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-3 max-h-48 overflow-y-auto">
                     {TIME_SLOTS.map((time) => {
                       // Check if any selected date is today and if this time is in the past
                       const isPastTime = selectedDates.some((date) => isTimeSlotInPast(date, time));
@@ -704,7 +737,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                             return (
                               <FormItem
                                 key={time}
-                                className="flex flex-row items-start space-x-3 space-y-0"
+                                className="flex flex-row items-center space-x-3 space-y-0 min-h-[44px]"
                               >
                                 <FormControl>
                                   <Checkbox
