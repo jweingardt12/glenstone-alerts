@@ -154,7 +154,7 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
   if (activeAlerts.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-stone-400 text-lg font-light">
+        <p className="text-muted-foreground text-lg font-light">
           {alerts.length === 0
             ? "You don't have any alerts set up yet."
             : "All your alerts have expired. The dates you selected are in the past."}
@@ -166,48 +166,48 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
   return (
     <div className="space-y-4">
       {expiredCount > 0 && (
-        <div className="bg-stone-50 border border-stone-200 rounded-sm p-4 text-sm text-stone-600 font-light">
+        <div className="bg-muted border border-border rounded-sm p-4 text-sm text-muted-foreground font-light">
           {expiredCount} {expiredCount === 1 ? "alert has" : "alerts have"} expired and {expiredCount === 1 ? "is" : "are"} hidden (all dates are in the past).
         </div>
       )}
       {activeAlerts.map((alert) => (
         <div
           key={alert.id}
-          className={`border border-stone-200 rounded-sm p-4 sm:p-6 ${
-            alert.active ? "bg-white" : "bg-stone-50"
+          className={`border border-border rounded-sm p-4 sm:p-6 ${
+            alert.active ? "bg-card" : "bg-muted"
           }`}
         >
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-lg font-light text-stone-900">
+                <h3 className="text-lg font-light text-foreground">
                   {alert.quantity} {alert.quantity === 1 ? "Ticket" : "Tickets"}
                 </h3>
                 <span
                   className={`px-3 py-1 text-xs font-light rounded-full border ${
                     alert.active
-                      ? "bg-white border-stone-300 text-stone-900"
-                      : "bg-stone-100 border-stone-200 text-stone-600"
+                      ? "bg-background border-border text-foreground"
+                      : "bg-muted border-border text-muted-foreground"
                   }`}
                 >
                   {alert.active ? "Active" : "Inactive"}
                 </span>
               </div>
 
-              <div className="space-y-2 text-sm text-stone-600 font-light leading-relaxed">
+              <div className="space-y-2 text-sm text-muted-foreground font-light leading-relaxed">
                 <div>
-                  <strong className="font-normal text-stone-900">Dates:</strong>{" "}
+                  <strong className="font-normal text-foreground">Dates:</strong>{" "}
                   {alert.dates.map((date) => formatDate(date)).join(", ")}
                 </div>
                 <div>
-                  <strong className="font-normal text-stone-900">Time Preference:</strong>{" "}
+                  <strong className="font-normal text-foreground">Time Preference:</strong>{" "}
                   {alert.preferredTimes && alert.preferredTimes.length > 0
                     ? alert.preferredTimes.map((time) => formatTimeSlot(time)).join(", ")
                     : "Any time"}
                 </div>
                 {alert.minCapacity && (
                   <div>
-                    <strong className="font-normal text-stone-900">Minimum Capacity:</strong> {alert.minCapacity} slots
+                    <strong className="font-normal text-foreground">Minimum Capacity:</strong> {alert.minCapacity} slots
                   </div>
                 )}
               </div>
@@ -220,7 +220,7 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
                   setEditingAlert(alert);
                 }}
                 disabled={loading === alert.id}
-                className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-sm text-sm font-light hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out active:scale-95"
+                className="px-4 py-2 bg-background border border-border text-foreground rounded-sm text-sm font-light hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out active:scale-95"
               >
                 Edit
               </button>
@@ -229,8 +229,8 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
                 disabled={loading === alert.id}
                 className={`px-4 py-2 rounded-sm text-sm font-light border transition-all duration-200 ease-in-out active:scale-95 ${
                   alert.active
-                    ? "bg-stone-50 border-stone-300 text-stone-700 hover:bg-stone-100"
-                    : "bg-white border-stone-300 text-stone-900 hover:bg-stone-50"
+                    ? "bg-muted border-border text-foreground hover:bg-accent hover:text-accent-foreground"
+                    : "bg-background border-border text-foreground hover:bg-accent hover:text-accent-foreground"
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {loading === alert.id
@@ -242,7 +242,7 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
               <button
                 onClick={() => handleDelete(alert.id)}
                 disabled={loading === alert.id}
-                className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-sm text-sm font-light hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out active:scale-95"
+                className="px-4 py-2 bg-background border border-border text-foreground rounded-sm text-sm font-light hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out active:scale-95"
               >
                 {loading === alert.id ? "..." : "Delete"}
               </button>
