@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Alert } from "@/lib/types";
 import { AlertModal } from "@/components/alert-modal";
 import { AlertEditForm } from "@/components/alert-edit-form";
@@ -33,6 +33,33 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
     title: "",
     message: "",
   });
+
+  // Filter out alerts where all dates are in the past
+  const { activeAlerts, expiredCount } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+
+    const active: Alert[] = [];
+    let expired = 0;
+
+    alerts.forEach((alert) => {
+      // Check if any date is today or in the future
+      const hasValidDate = alert.dates.some((dateStr) => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const alertDate = new Date(year, month - 1, day);
+        alertDate.setHours(0, 0, 0, 0);
+        return alertDate >= today;
+      });
+
+      if (hasValidDate) {
+        active.push(alert);
+      } else {
+        expired++;
+      }
+    });
+
+    return { activeAlerts: active, expiredCount: expired };
+  }, [alerts]);
 
   const formatDate = (dateStr: string) => {
     // Parse YYYY-MM-DD format and create date in local timezone to avoid timezone shifts
@@ -124,11 +151,13 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
     }
   };
 
-  if (alerts.length === 0) {
+  if (activeAlerts.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-stone-400 text-lg font-light">
-          You don&apos;t have any alerts set up yet.
+          {alerts.length === 0
+            ? "You don't have any alerts set up yet."
+            : "All your alerts have expired. The dates you selected are in the past."}
         </p>
       </div>
     );
@@ -136,14 +165,19 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
 
   return (
     <div className="space-y-4">
-      {alerts.map((alert) => (
+      {expiredCount > 0 && (
+        <div className="bg-stone-50 border border-stone-200 rounded-sm p-4 text-sm text-stone-600 font-light">
+          {expiredCount} {expiredCount === 1 ? "alert has" : "alerts have"} expired and {expiredCount === 1 ? "is" : "are"} hidden (all dates are in the past).
+        </div>
+      )}
+      {activeAlerts.map((alert) => (
         <div
           key={alert.id}
-          className={`border border-stone-200 rounded-sm p-6 ${
+          className={`border border-stone-200 rounded-sm p-4 sm:p-6 ${
             alert.active ? "bg-white" : "bg-stone-50"
           }`}
         >
-          <div className="flex justify-between items-start">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
                 <h3 className="text-lg font-light text-stone-900">
@@ -179,7 +213,7 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
               </div>
             </div>
 
-            <div className="flex gap-2 ml-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:ml-4 mt-4 sm:mt-0 w-full sm:w-auto">
               <button
                 onClick={() => {
                   track("alert_edit_opened");
