@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from "date-fns";
 import { Button } from "./ui/button";
-import { ChevronLeft, ChevronRight, Bell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Bell, CheckCircle2, AlertCircle } from "lucide-react";
 import type { CalendarDate, EventSession, WeatherResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { getWeatherIcon } from "@/lib/weather-utils";
@@ -249,7 +249,8 @@ export function AvailabilityCalendar({
                   <div className="flex-1 flex flex-col justify-between">
                     {isAvailable && (
                       <div className="space-y-0.5">
-                        <div className="text-xs font-medium text-green-700 dark:text-green-400">
+                        <div className="flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400">
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                           Available
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -270,7 +271,8 @@ export function AvailabilityCalendar({
                     )}
                     {isSoldOut && (
                       <div className="space-y-1">
-                        <div className="text-xs font-medium text-muted-foreground">
+                        <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                           Sold Out
                         </div>
                         {weather && (

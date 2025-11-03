@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ChevronLeft } from "lucide-react";
 import { AlertsManager } from "@/components/alerts-manager";
 import { UnsubscribeButton } from "@/components/unsubscribe-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -102,6 +102,15 @@ export default async function ManageAlertsPage({ params }: PageProps) {
       <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="max-w-5xl mx-auto">
           <div className="space-y-4 sm:space-y-6">
+            {/* Back Navigation */}
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back to Home
+            </Link>
+
             {/* Page Header */}
             <div>
               <h2 className="text-xl sm:text-2xl font-light">Manage Your Alerts</h2>

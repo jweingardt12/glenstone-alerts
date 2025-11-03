@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -165,6 +165,9 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
+
+  // Refs for verification code inputs
+  const codeInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
 
   // Support controlled or uncontrolled mode
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
@@ -467,7 +470,9 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                         {[0, 1, 2, 3].map((index) => (
                           <Input
                             key={index}
-                            id={`code-${index}`}
+                            ref={(el) => {
+                              codeInputRefs.current[index] = el;
+                            }}
                             type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
@@ -484,16 +489,14 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
 
                                 // Auto-focus next input
                                 if (value && index < 3) {
-                                  const nextInput = document.getElementById(`code-${index + 1}`) as HTMLInputElement;
-                                  nextInput?.focus();
+                                  codeInputRefs.current[index + 1]?.focus();
                                 }
                               }
                             }}
                             onKeyDown={(e) => {
                               // Handle backspace
                               if (e.key === "Backspace" && !verificationCode[index] && index > 0) {
-                                const prevInput = document.getElementById(`code-${index - 1}`) as HTMLInputElement;
-                                prevInput?.focus();
+                                codeInputRefs.current[index - 1]?.focus();
                               }
                               // Handle enter
                               if (e.key === "Enter" && verificationCode.length === 4) {
@@ -507,8 +510,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                               setVerificationCode(pastedData);
                               setVerificationError(null);
                               if (pastedData.length === 4) {
-                                const lastInput = document.getElementById("code-3") as HTMLInputElement;
-                                lastInput?.focus();
+                                codeInputRefs.current[3]?.focus();
                               }
                             }}
                             className="text-center text-2xl font-mono w-14 h-14"
@@ -562,7 +564,6 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                     <Select
                       onValueChange={(value) => field.onChange(parseInt(value))}
                       defaultValue={field.value.toString()}
-                      disabled={verificationSent && !verificationSuccess}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -609,9 +610,6 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                             field.onChange(sanitizedDates);
                           }}
                           disabled={(date) => {
-                            // Disable during verification
-                            if (verificationSent && !verificationSuccess) return true;
-
                             const now = new Date();
                             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                             const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -667,7 +665,6 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                       type="button"
                       variant="outline"
                       size="sm"
-                      disabled={verificationSent && !verificationSuccess}
                       onClick={() => {
                         const currentTimes = field.value || [];
                         const morningTimes = TIME_RANGES.morning.filter(time =>
@@ -683,7 +680,6 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                       type="button"
                       variant="outline"
                       size="sm"
-                      disabled={verificationSent && !verificationSuccess}
                       onClick={() => {
                         const currentTimes = field.value || [];
                         const middayTimes = TIME_RANGES.midday.filter(time =>
@@ -699,7 +695,6 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                       type="button"
                       variant="outline"
                       size="sm"
-                      disabled={verificationSent && !verificationSuccess}
                       onClick={() => {
                         const currentTimes = field.value || [];
                         const afternoonTimes = TIME_RANGES.afternoon.filter(time =>
@@ -715,7 +710,6 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                       type="button"
                       variant="ghost"
                       size="sm"
-                      disabled={verificationSent && !verificationSuccess}
                       onClick={() => field.onChange([])}
                     >
                       Clear
@@ -726,7 +720,6 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                     {TIME_SLOTS.map((time) => {
                       // Check if any selected date is today and if this time is in the past
                       const isPastTime = selectedDates.some((date) => isTimeSlotInPast(date, time));
-                      const isDisabledForVerification = verificationSent && !verificationSuccess;
 
                       return (
                         <FormField
@@ -742,7 +735,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                                 <FormControl>
                                   <Checkbox
                                     checked={field.value?.includes(time)}
-                                    disabled={isPastTime || isDisabledForVerification}
+                                    disabled={isPastTime}
                                     onCheckedChange={(checked) => {
                                       return checked
                                         ? field.onChange([...(field.value || []), time])
@@ -754,7 +747,7 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
                                     }}
                                   />
                                 </FormControl>
-                                <FormLabel className={`text-sm font-normal ${isPastTime || isDisabledForVerification ? "opacity-50 cursor-not-allowed" : ""}`}>
+                                <FormLabel className={`text-sm font-normal ${isPastTime ? "opacity-50 cursor-not-allowed" : ""}`}>
                                   {formatTimeLabel(time)}
                                 </FormLabel>
                               </FormItem>

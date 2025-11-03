@@ -30,6 +30,7 @@ export default function Home() {
   const [sessions, setSessions] = useState<EventSession[]>([]);
   const [calendarData, setCalendarData] = useState<CalendarDate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const quantity = 2;
 
   // Cycle through art-related emojis in the footer
@@ -66,21 +67,20 @@ export default function Home() {
   const fetchAvailability = useCallback(async (isManualRefresh = false) => {
     try {
       setLoading(true);
+      setError(null);
       if (isManualRefresh) {
         track("availability_refreshed");
       }
 
-      // Start both the fetch and the minimum delay timer
-      const [response] = await Promise.all([
-        fetch(`/api/availability?quantity=${quantity}`),
-        new Promise(resolve => setTimeout(resolve, 1000)) // Minimum 1 second
-      ]);
+      const response = await fetch(`/api/availability?quantity=${quantity}`);
 
       if (!response.ok) throw new Error("Failed to fetch availability");
       const data: CalendarResponse = await response.json();
       setCalendarData(data.calendar._data);
     } catch (err) {
       console.error("Error fetching availability:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to load availability. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -222,6 +222,23 @@ export default function Home() {
                       <ListSkeleton />
                     </div>
                   </>
+                ) : error ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="mb-4 text-4xl">⚠️</div>
+                    <h3 className="text-lg font-medium text-foreground mb-2">
+                      Unable to Load Availability
+                    </h3>
+                    <p className="text-muted-foreground mb-6 max-w-md">
+                      {error}
+                    </p>
+                    <Button
+                      onClick={() => fetchAvailability(true)}
+                      variant="default"
+                      disabled={loading}
+                    >
+                      Try Again
+                    </Button>
+                  </div>
                 ) : (
                   <>
                     {/* Calendar view for desktop */}

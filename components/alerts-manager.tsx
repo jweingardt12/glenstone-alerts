@@ -5,6 +5,7 @@ import type { Alert } from "@/lib/types";
 import { AlertModal } from "@/components/alert-modal";
 import { AlertEditForm } from "@/components/alert-edit-form";
 import { useOpenPanel } from "@openpanel/nextjs";
+import { Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +13,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface AlertsManagerProps {
   initialAlerts: Alert[];
@@ -22,6 +32,13 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    alertId: string | null;
+  }>({
+    isOpen: false,
+    alertId: null,
+  });
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;
     type: "success" | "error" | "info";
@@ -82,11 +99,8 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
     return `${hour}:${minute} AM`;
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this alert?")) {
-      return;
-    }
-
+  const handleDeleteConfirmed = async (id: string) => {
+    setDeleteConfirm({ isOpen: false, alertId: null });
     setLoading(id);
     try {
       const response = await fetch(`/api/alerts/${id}`, {
@@ -120,6 +134,13 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
 
   const handleToggleActive = async (id: string, currentActive: boolean) => {
     setLoading(id);
+    // Optimistic UI - update immediately
+    setAlerts((prevAlerts) =>
+      prevAlerts.map((alert) =>
+        alert.id === id ? { ...alert, active: !alert.active } : alert
+      )
+    );
+
     try {
       const response = await fetch(`/api/alerts/${id}`, {
         method: "PATCH",
@@ -140,6 +161,12 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
       track(updatedAlert.active ? "alert_activated" : "alert_paused");
     } catch (error) {
       console.error("Error updating alert:", error);
+      // Rollback optimistic update on error
+      setAlerts((prevAlerts) =>
+        prevAlerts.map((alert) =>
+          alert.id === id ? { ...alert, active: currentActive } : alert
+        )
+      );
       setAlertModal({
         isOpen: true,
         type: "error",
@@ -227,24 +254,30 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
               <button
                 onClick={() => handleToggleActive(alert.id, alert.active)}
                 disabled={loading === alert.id}
-                className={`px-4 py-2 rounded-sm text-sm font-light border transition-all duration-200 ease-in-out active:scale-95 ${
+                className={`px-4 py-2 rounded-sm text-sm font-light border transition-all duration-200 ease-in-out active:scale-95 flex items-center justify-center gap-2 ${
                   alert.active
                     ? "bg-stone-50 border-stone-300 text-stone-700 hover:bg-stone-100"
                     : "bg-white border-stone-300 text-stone-900 hover:bg-stone-50"
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
+                {loading === alert.id && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                 {loading === alert.id
-                  ? "..."
+                  ? alert.active ? "Pausing..." : "Activating..."
                   : alert.active
                   ? "Pause"
                   : "Activate"}
               </button>
               <button
-                onClick={() => handleDelete(alert.id)}
+                onClick={() => setDeleteConfirm({ isOpen: true, alertId: alert.id })}
                 disabled={loading === alert.id}
-                className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-sm text-sm font-light hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out active:scale-95"
+                className="px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-sm text-sm font-light hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out active:scale-95 flex items-center justify-center gap-2"
               >
-                {loading === alert.id ? "..." : "Delete"}
+                {loading === alert.id && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
+                {loading === alert.id ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
@@ -258,6 +291,27 @@ export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
         title={alertModal.title}
         message={alertModal.message}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, alertId: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Alert?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Your alert will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-2">
+            <AlertDialogCancel className="flex-1">Keep Alert</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteConfirm.alertId && handleDeleteConfirmed(deleteConfirm.alertId)}
+              className="flex-1 bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Edit Alert Sheet */}
       <Sheet open={editingAlert !== null} onOpenChange={(open) => !open && setEditingAlert(null)}>

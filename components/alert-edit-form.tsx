@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WeatherCalendar } from "@/components/weather-calendar";
+import { AlertModal } from "@/components/alert-modal";
 import type { Alert, TimeSlot } from "@/lib/types";
 
 // Time slots in ascending order
@@ -119,6 +120,15 @@ export function AlertEditForm({ alert, onSuccess, onCancel }: AlertEditFormProps
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [calendarKey, setCalendarKey] = useState(0);
+  const [errorModal, setErrorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -168,7 +178,12 @@ export function AlertEditForm({ alert, onSuccess, onCancel }: AlertEditFormProps
       onSuccess(data.alert);
     } catch (error) {
       console.error("Error updating alert:", error);
-      window.alert(error instanceof Error ? error.message : "Failed to update alert");
+      const message = error instanceof Error ? error.message : "Failed to update alert";
+      setErrorModal({
+        isOpen: true,
+        title: "Update Failed",
+        message,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -399,6 +414,14 @@ export function AlertEditForm({ alert, onSuccess, onCancel }: AlertEditFormProps
           </Button>
         </div>
       </form>
+
+      <AlertModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+        type="error"
+        title={errorModal.title}
+        message={errorModal.message}
+      />
     </Form>
   );
 }
