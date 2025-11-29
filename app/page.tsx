@@ -20,12 +20,12 @@ import type {
   EventSession,
 } from "@/lib/types";
 import { generateBookingUrl } from "@/lib/glenstone-api";
-import { useOpenPanel } from "@openpanel/nextjs";
+import { useSafeTrack } from "@/lib/analytics";
 
 // Removed header weather display and related helpers
 
 export default function Home() {
-  const { track } = useOpenPanel();
+  const track = useSafeTrack();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [sessions, setSessions] = useState<EventSession[]>([]);
   const [calendarData, setCalendarData] = useState<CalendarDate[]>([]);

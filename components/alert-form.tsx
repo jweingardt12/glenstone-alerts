@@ -9,7 +9,7 @@ import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AlertModal } from "@/components/alert-modal";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useOpenPanel } from "@openpanel/nextjs";
+import { useSafeTrack } from "@/lib/analytics";
 import {
   Form,
   FormControl,
@@ -138,7 +138,7 @@ interface AlertFormProps {
 }
 
 export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, onClose, showTrigger = false }: AlertFormProps) {
-  const { track } = useOpenPanel();
+  const track = useSafeTrack();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);

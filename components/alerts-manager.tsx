@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import type { Alert } from "@/lib/types";
 import { AlertModal } from "@/components/alert-modal";
 import { AlertEditForm } from "@/components/alert-edit-form";
-import { useOpenPanel } from "@openpanel/nextjs";
+import { useSafeTrack } from "@/lib/analytics";
 import { Loader2 } from "lucide-react";
 import {
   Sheet,
@@ -28,7 +28,7 @@ interface AlertsManagerProps {
 }
 
 export function AlertsManager({ initialAlerts }: AlertsManagerProps) {
-  const { track } = useOpenPanel();
+  const track = useSafeTrack();
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
