@@ -76,7 +76,7 @@ export default function Home() {
 
       if (!response.ok) throw new Error("Failed to fetch availability");
       const data: CalendarResponse = await response.json();
-      setCalendarData(data.calendar._data);
+      setCalendarData(data?.calendar?._data ?? []);
     } catch (err) {
       console.error("Error fetching availability:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to load availability. Please try again.";

@@ -1,6 +1,12 @@
 import type { Alert, CalendarDate } from "./types";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { generateBookingUrl } from "./glenstone-api";
+
+// Helper to parse YYYY-MM-DD date string in a timezone-safe way
+function parseDateString(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
 
 /**
  * Email notification service
@@ -58,7 +64,7 @@ function generateAvailabilityEmail(
 ): string {
   const datesList = availableDates
     .map((date) => {
-      const formattedDate = format(parseISO(date.date), "EEEE, MMMM d, yyyy");
+      const formattedDate = format(parseDateString(date.date), "EEEE, MMMM d, yyyy");
       const availableSlots =
         date.availability.capacity - date.availability.used_capacity;
       const bookingUrl = generateBookingUrl(date.date, alert.quantity);
@@ -261,7 +267,7 @@ export async function sendAlertConfirmation(alert: Alert): Promise<boolean> {
 
   // Option 2: Use mock email (default for development)
   const datesList = alert.dates
-    .map((date) => format(parseISO(date), "MMMM d, yyyy"))
+    .map((date) => format(parseDateString(date), "MMMM d, yyyy"))
     .join(", ");
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");

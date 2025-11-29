@@ -72,7 +72,8 @@ export async function GET(request: NextRequest) {
 
       try {
         const calendarData = await fetchCalendarAvailability(quantity);
-        const availableDates = calendarData.calendar._data.filter(
+        const calendarDates = calendarData?.calendar?._data ?? [];
+        const availableDates = calendarDates.filter(
           (date) => date.status === "available"
         );
 
@@ -125,7 +126,8 @@ export async function GET(request: NextRequest) {
             if (alert.preferredTimes && alert.preferredTimes.length > 0) {
               try {
                 const sessionsData = await fetchDaySessions(date.date, quantity);
-                const availableSessions = sessionsData.event_session._data.filter(
+                const sessionsList = sessionsData?.event_session?._data ?? [];
+                const availableSessions = sessionsList.filter(
                   (session: EventSession) => !session.sold_out
                 );
 
