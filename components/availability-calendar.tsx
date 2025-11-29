@@ -101,7 +101,8 @@ export function AvailabilityCalendar({
       }
 
       const data = await response.json();
-      onDaySelect(dateStr, data.event_session._data);
+      const sessions = data?.event_session?._data ?? [];
+      onDaySelect(dateStr, sessions);
     } catch (error) {
       console.error("Error loading sessions:", error);
     } finally {
