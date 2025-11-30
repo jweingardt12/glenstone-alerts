@@ -20,12 +20,12 @@ import type {
   EventSession,
 } from "@/lib/types";
 import { generateBookingUrl } from "@/lib/glenstone-api";
-import { useOpenPanel } from "@openpanel/nextjs";
+import { useSafeTrack } from "@/lib/analytics";
 
 // Removed header weather display and related helpers
 
 export default function Home() {
-  const { track } = useOpenPanel();
+  const track = useSafeTrack();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [sessions, setSessions] = useState<EventSession[]>([]);
   const [calendarData, setCalendarData] = useState<CalendarDate[]>([]);
@@ -76,7 +76,7 @@ export default function Home() {
 
       if (!response.ok) throw new Error("Failed to fetch availability");
       const data: CalendarResponse = await response.json();
-      setCalendarData(data.calendar._data);
+      setCalendarData(data?.calendar?._data ?? []);
     } catch (err) {
       console.error("Error fetching availability:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to load availability. Please try again.";

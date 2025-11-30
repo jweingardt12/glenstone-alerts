@@ -51,16 +51,24 @@ export function TimeSlotModal({
 
   // Only show sessions up to and including 4:15 PM
   const isBeforeCutoff = (iso: string) => {
-    const d = parseISO(iso);
-    const h = d.getHours();
-    const m = d.getMinutes();
-    return h < 16 || (h === 16 && m <= 15);
+    try {
+      const d = parseISO(iso);
+      if (isNaN(d.getTime())) return false;
+      const h = d.getHours();
+      const m = d.getMinutes();
+      return h < 16 || (h === 16 && m <= 15);
+    } catch {
+      return false;
+    }
   };
 
   const visibleSessions = sessions.filter((s) => isBeforeCutoff(s.start_datetime));
   const availableSessions = visibleSessions.filter((s) => !s.sold_out);
   const unavailableSessions = visibleSessions.filter((s) => s.sold_out);
-  const dateObj = parseISO(date);
+
+  // Parse date with timezone-safe approach (YYYY-MM-DD format)
+  const dateParts = date.split('-').map(Number);
+  const dateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
 
   const handleOpenAlert = () => {
     onClose(); // Close the time slot modal

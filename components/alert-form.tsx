@@ -4,12 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AlertModal } from "@/components/alert-modal";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useOpenPanel } from "@openpanel/nextjs";
+import { useSafeTrack } from "@/lib/analytics";
 import {
   Form,
   FormControl,
@@ -138,7 +138,7 @@ interface AlertFormProps {
 }
 
 export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, onClose, showTrigger = false }: AlertFormProps) {
-  const { track } = useOpenPanel();
+  const track = useSafeTrack();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -201,7 +201,9 @@ export function AlertForm({ onSuccess, prefilledDate, isOpen: controlledIsOpen, 
   // Auto-fill date if provided or reset when modal closes
   useEffect(() => {
     if (isOpen && prefilledDate) {
-      const date = parseISO(prefilledDate);
+      // Parse date with timezone-safe approach (YYYY-MM-DD format)
+      const dateParts = prefilledDate.split('-').map(Number);
+      const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
       if (!isClosedDay(date)) {
         setSelectedDates([date]);
         form.setValue("dates", [date]);

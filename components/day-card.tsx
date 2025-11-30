@@ -1,6 +1,6 @@
 "use client";
 
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Bell } from "lucide-react";
 import type { CalendarDate, DailyWeather } from "@/lib/types";
 import { getWeatherIcon } from "@/lib/weather-utils";
@@ -14,7 +14,9 @@ interface DayCardProps {
 }
 
 export function DayCard({ dayData, weather, isSelected, onClick, onCreateAlert }: DayCardProps) {
-  const date = parseISO(dayData.date);
+  // Parse date with timezone-safe approach (YYYY-MM-DD format)
+  const dateParts = dayData.date.split('-').map(Number);
+  const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
   const available = dayData.availability.capacity - dayData.availability.used_capacity;
   const isSoldOut = dayData.status === "sold_out" || available === 0;
 

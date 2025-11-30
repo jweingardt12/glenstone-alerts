@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertModal } from "@/components/alert-modal";
-import { useOpenPanel } from "@openpanel/nextjs";
+import { useSafeTrack } from "@/lib/analytics";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +21,7 @@ interface UnsubscribeButtonProps {
 }
 
 export function UnsubscribeButton({ token }: UnsubscribeButtonProps) {
-  const { track } = useOpenPanel();
+  const track = useSafeTrack();
   const [isUnsubscribing, setIsUnsubscribing] = useState(false);
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean;

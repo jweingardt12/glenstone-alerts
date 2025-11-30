@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { AlertModal } from "@/components/alert-modal";
 import {
@@ -68,7 +68,9 @@ export function AlertFormInline({ onSuccess, prefilledDate, prefilledTimeOfDay }
   // Auto-fill date and time of day if provided
   useEffect(() => {
     if (prefilledDate) {
-      const date = parseISO(prefilledDate);
+      // Parse date with timezone-safe approach (YYYY-MM-DD format)
+      const dateParts = prefilledDate.split('-').map(Number);
+      const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
       setSelectedDates([date]);
       form.setValue("dates", [date]);
     }

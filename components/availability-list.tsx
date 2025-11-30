@@ -73,7 +73,8 @@ export function AvailabilityList({
       }
 
       const data = await response.json();
-      onDaySelect(dayData.date, data.event_session._data);
+      const sessions = data?.event_session?._data ?? [];
+      onDaySelect(dayData.date, sessions);
     } catch (error) {
       console.error("Error loading sessions:", error);
     } finally {
